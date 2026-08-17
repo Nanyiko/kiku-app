@@ -17,6 +17,7 @@ export default function Index() {
   const redirectUri = AuthSession.makeRedirectUri({
     useProxy: true,
   });
+  console.log(redirectUri);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
