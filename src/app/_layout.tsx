@@ -13,6 +13,10 @@ export default function RootLayout() {
           name="theme-select"
           options={{ title: "Theme Select", headerShown: false }}
         />
+        <Stack.Screen
+          name="home"
+          options={{ title: "Home", headerShown: false }}
+        />
       </Stack>
     </>
   );

@@ -102,11 +102,18 @@ export default function Onboarding() {
 
           setProfile(retryData ?? null);
           setUsername(retryData?.display_name ?? "");
+          await AsyncStorage.setItem("username", username);
+          await AsyncStorage.setItem(
+            "profile_pic_uri",
+            retryData?.images[0]?.url,
+          );
           return;
         }
 
         setProfile(data);
         setUsername(data.display_name ?? "");
+        await AsyncStorage.setItem("username", username);
+        await AsyncStorage.setItem("profile_pic_uri", data?.images[0]?.url);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       }
@@ -116,7 +123,7 @@ export default function Onboarding() {
   }, [token, refreshToken]);
 
   const profileImage = profile?.images?.[0]?.url;
-  const displayName = username || profile?.display_name || "KikU User";
+  const displayName = username || profile?.display_name || "KiKU User";
 
   return (
     <View style={style.container}>
@@ -130,7 +137,7 @@ export default function Onboarding() {
             ) : (
               <View style={[style.profilePic, style.placeholderAvatar]} />
             )}
-            <Text style={style.headerText}>Welcome to KikU</Text>
+            <Text style={style.headerText}>Welcome to KiKU</Text>
           </View>
 
           <View style={style.inputContainer}>
@@ -147,7 +154,11 @@ export default function Onboarding() {
 
           <Pressable
             style={style.button}
-            onPress={() => router.navigate("/theme-select")}
+            onPress={() => {
+              router.replace("/theme-select");
+              AsyncStorage.setItem("username", username);
+              AsyncStorage.setItem("profile_pic_uri", profileImage);
+            }}
           >
             <Text style={style.buttonText}>Next</Text>
           </Pressable>

@@ -22,7 +22,11 @@ export default function Index() {
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: CLIENT_ID,
-      scopes: ["user-read-email", "user-read-private"],
+      scopes: [
+        "user-read-email",
+        "user-read-private",
+        "user-read-recently-played",
+      ],
       usePKCE: true,
       redirectUri,
     },
