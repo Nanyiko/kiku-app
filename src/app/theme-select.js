@@ -56,7 +56,7 @@ export default function ThemeSelect() {
       <Pressable
         style={style.button}
         onPress={() => {
-          router.replace("/Home");
+          router.replace("/tabs");
           AsyncStorage.setItem("theme", `${selectedTheme}`);
         }}
       >

@@ -1,22 +1,23 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
-import getSelectedTheme from "../../context/theme";
+import { StyleSheet, Text, View } from "react-native";
+import getSelectedTheme from "../../../context/theme";
 
 const defaultTheme = {
   primary: "#C39BD3",
   secondary: "#B892D4",
   tertiary: "#D7A6C7",
+  text: "#FFFFFF",
 };
 
-export default function Home() {
+export default function Recents() {
   const [theme, setTheme] = useState(defaultTheme);
   const [username, setUsername] = useState("");
   const [profilePicUri, setProfilePicUri] = useState("");
   const [storedTheme, setStoredTheme] = useState("default");
+  const [loading, setLoading] = useState(true);
 
-  const { primary, secondary, tertiary } = theme;
+  const { primary, secondary, tertiary, text } = theme;
 
   useEffect(() => {
     const loadData = async () => {
@@ -32,6 +33,7 @@ export default function Home() {
         setUsername(savedUsername ?? "");
         setProfilePicUri(savedProfilePicUri ?? "");
         setStoredTheme(savedTheme ?? "default");
+        setLoading(false);
       } catch (error) {
         console.warn("Failed to load recents data:", error);
       }
@@ -40,16 +42,16 @@ export default function Home() {
     loadData();
   }, []);
 
-  return (
-    <NativeTabs
-      screenListeners={{
-        tabPress: (e) => {
-          console.log("Any tab pressed");
-        },
-      }}
-    >
-      <NativeTabs.Trigger name="recents" />
-    </NativeTabs>
+  return loading ? (
+    <View>
+      <Text>Loading...</Text>
+    </View>
+  ) : (
+    <View style={[style.container, { backgroundColor: primary }]}>
+      <Text>Username: {username || "No username saved"}</Text>
+      <Text>Profile URI: {profilePicUri || "No profile image saved"}</Text>
+      <Text>Theme: {storedTheme}</Text>
+    </View>
   );
 }
 

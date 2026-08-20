@@ -5,21 +5,25 @@ const themeOptions = {
     primary: "#C39BD3",
     secondary: "#B892D4",
     tertiary: "#D7A6C7",
+    text: "#FFFFFF",
   },
   1: {
     primary: "#B80F0A",
     secondary: "#700D17",
     tertiary: "#E5B700",
+    text: "#FFFFFF",
   },
   2: {
     primary: "#F4C20D",
     secondary: "#F28C28",
     tertiary: "#C5D84E",
+    text: "#FFFFFF",
   },
   3: {
     primary: "#F8F5E7",
     secondary: "#FFFFFF",
     tertiary: "#D7E4C2",
+    text: "#000000",
   },
 };
 
@@ -27,6 +31,7 @@ const defaultTheme = {
   primary: "#C39BD3",
   secondary: "#B892D4",
   tertiary: "#D7A6C7",
+  text: "#000000",
 };
 
 export const getSelectedTheme = async () => {
