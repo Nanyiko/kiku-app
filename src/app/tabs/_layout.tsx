@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import getSelectedTheme from "../../../context/theme";
 
 const defaultTheme = {
@@ -35,19 +36,29 @@ export default function TabsLayout() {
     loadData();
   }, []);
 
-  return loading ? (
-    <View>
-      <Text>Loading...</Text>
-    </View>
-  ) : (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveBackgroundColor: secondary,
-        tabBarActiveTintColor: text,
-      }}
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: secondary }}
+      edges={["left", "right"]}
     >
-      <Tabs.Screen name="recents" options={{ title: "Recents" }} />
-    </Tabs>
+      {loading ? (
+        <View>
+          <Text>Loading...</Text>
+        </View>
+      ) : (
+        <Tabs
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveBackgroundColor: secondary,
+            tabBarActiveTintColor: text,
+            tabBarStyle: {
+              backgroundColor: secondary,
+            },
+          }}
+        >
+          <Tabs.Screen name="recents" options={{ title: "Recents" }} />
+        </Tabs>
+      )}
+    </SafeAreaView>
   );
 }

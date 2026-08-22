@@ -127,7 +127,7 @@ export default function Onboarding() {
 
   return (
     <View style={style.container}>
-      {profile == null ? (
+      {profile === null && username !== "" ? (
         <Text>Loading...</Text>
       ) : (
         <>
