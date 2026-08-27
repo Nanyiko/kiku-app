@@ -23,6 +23,7 @@ export default function Recents() {
   const [renderStart, setRenderStart] = useState(0);
   const [renderLimit, setRenderLimit] = useState(9);
   const [tokensLoaded, setTokensLoaded] = useState(false);
+  const [index, setIndex] = useState(0);
 
   const listRef = useRef(null);
 
@@ -182,58 +183,53 @@ export default function Recents() {
     fetchRecents(token);
   }, [tokensLoaded, token, refreshToken]);
 
+  useEffect(() => {
+    listRef.current?.scrollToIndex({
+      index,
+      animated: true,
+    });
+  }, [index]);
+
   return loading ? (
     <View style={[style.container, { backgroundColor: primary }]}>
       <Text style={[{ color: text }]}>Loading...</Text>
     </View>
   ) : (
     <View style={[style.container, { backgroundColor: primary }]}>
-      <FlatList
-        data={recents?.items.slice(renderStart, renderLimit) ?? []}
-        renderItem={({ item }) => <Track song={item} theme={theme} />}
-        keyExtractor={(item) => item?.played_at}
-        horizontal={false}
-        ref={listRef}
-        style={style.listContainer}
-      />
-      <View style={style.buttonContainer}>
+      <View>
+        <FlatList
+          data={recents?.items ?? []}
+          renderItem={({ item }) => <Track song={item} theme={theme} />}
+          keyExtractor={(item) => item?.played_at}
+          horizontal={false}
+          ref={listRef}
+          style={style.listContainer}
+          scrollEnabled={false}
+          initialScrollIndex={index}
+        />
         <Pressable
           style={[
-            { backgroundColor: secondary, borderColor: tertiary },
             style.button,
+            { width: 100, alignItems: "center", borderColor: secondary },
           ]}
           onPress={() => {
-            if (renderStart > 0) {
-              setRenderStart(renderStart - 10);
-              setRenderLimit(renderLimit - 10);
-              listRef.current.scrollToOffset({
-                offset: renderStart,
-                animated: true,
-              });
-            }
+            if (index === 0) return;
+            setIndex(index - 1);
           }}
-          disabled={renderStart <= 0}
         >
-          <Text style={[{ color: text }, style.buttonText]}>Previous</Text>
+          <Text style={[style.buttonText, { color: text }]}>Previous</Text>
         </Pressable>
         <Pressable
           style={[
-            { backgroundColor: secondary, borderColor: tertiary },
             style.button,
+            { width: 100, alignItems: "center", borderColor: secondary },
           ]}
           onPress={() => {
-            if (renderLimit < 49) {
-              setRenderStart(renderStart + 10);
-              setRenderLimit(renderLimit + 10);
-              listRef.current.scrollToOffset({
-                offset: renderStart,
-                animated: true,
-              });
-            }
+            if (index === 49) return;
+            setIndex(index + 1);
           }}
-          disabled={renderLimit >= 50}
         >
-          <Text style={[{ color: text }, style.buttonText]}>Next</Text>
+          <Text style={[style.buttonText, { color: text }]}>Next</Text>
         </Pressable>
       </View>
     </View>
@@ -246,9 +242,7 @@ const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  listContainer: {
-    marginTop: 50,
-  },
+  listContainer: {},
   button: {
     margin: 30,
     borderWidth: 2,
