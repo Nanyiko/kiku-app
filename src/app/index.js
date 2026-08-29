@@ -26,6 +26,7 @@ export default function Index() {
         "user-read-email",
         "user-read-private",
         "user-read-recently-played",
+        "user-top-read",
       ],
       usePKCE: true,
       redirectUri,

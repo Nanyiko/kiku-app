@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Tabs } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text } from "react-native";
 import getSelectedTheme from "../../../context/theme";
 
 const defaultTheme = {
@@ -12,7 +11,7 @@ const defaultTheme = {
   text: "#FFFFFF",
 };
 
-export default function TabsLayout() {
+export default function Stats() {
   const [theme, setTheme] = useState(defaultTheme);
   const [storedTheme, setStoredTheme] = useState("default");
   const [loading, setLoading] = useState(true);
@@ -35,33 +34,22 @@ export default function TabsLayout() {
 
     loadData();
   }, []);
-
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: secondary }}
-      edges={["left", "right"]}
+    <LinearGradient
+      style={style.container}
+      colors={[secondary, primary]}
+      start={{ x: 0.5, y: 0.3 }}
+      end={{ x: 0, y: 0.5 }}
     >
-      {loading ? (
-        <View>
-          <Text>Loading...</Text>
-        </View>
-      ) : (
-        <Tabs
-          screenOptions={{
-            headerShown: false,
-            tabBarActiveBackgroundColor: primary,
-            tabBarActiveTintColor: text,
-            tabBarStyle: {
-              backgroundColor: primary,
-            },
-            tabBarInactiveBackgroundColor: primary,
-            tabBarPosition: "bottom",
-          }}
-        >
-          <Tabs.Screen name="recents" options={{ title: "Recents" }} />
-          <Tabs.Screen name="stats" options={{ title: "Stats" }} />
-        </Tabs>
-      )}
-    </SafeAreaView>
+      <Text style={{ color: text }}>Stats</Text>
+    </LinearGradient>
   );
 }
+
+const style = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

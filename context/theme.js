@@ -20,8 +20,8 @@ const themeOptions = {
     text: "#FFFFFF",
   },
   3: {
-    primary: "#F8F5E7",
-    secondary: "#FFFFFF",
+    primary: "#FFFFFF",
+    secondary: "#F8F5E7",
     tertiary: "#D7E4C2",
     text: "#000000",
   },

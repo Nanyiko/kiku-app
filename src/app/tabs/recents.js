@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, FlatList, StyleSheet, Text } from "react-native";
 import Track from "../../../components/Track";
 import getSelectedTheme from "../../../context/theme";
 
@@ -10,6 +11,8 @@ const defaultTheme = {
   tertiary: "#D7A6C7",
   text: "#FFFFFF",
 };
+
+const { height } = Dimensions.get("window");
 
 export default function Recents() {
   const [token, setToken] = useState(null);
@@ -183,66 +186,42 @@ export default function Recents() {
     fetchRecents(token);
   }, [tokensLoaded, token, refreshToken]);
 
-  useEffect(() => {
-    listRef.current?.scrollToIndex({
-      index,
-      animated: true,
-    });
-  }, [index]);
-
   return loading ? (
-    <View style={[style.container, { backgroundColor: primary }]}>
+    <LinearGradient
+      style={style.container}
+      colors={[secondary, primary]}
+      start={{ x: 0.5, y: 0.3 }}
+      end={{ x: 0, y: 0.5 }}
+    >
       <Text style={[{ color: text }]}>Loading...</Text>
-    </View>
+    </LinearGradient>
   ) : (
-    <View style={[style.container, { backgroundColor: primary }]}>
-      <View>
-        <FlatList
-          data={recents?.items ?? []}
-          renderItem={({ item }) => <Track song={item} theme={theme} />}
-          keyExtractor={(item) => item?.played_at}
-          horizontal={false}
-          ref={listRef}
-          style={style.listContainer}
-          scrollEnabled={false}
-          initialScrollIndex={index}
-        />
-        <Pressable
-          style={[
-            style.button,
-            { width: 100, alignItems: "center", borderColor: secondary },
-          ]}
-          onPress={() => {
-            if (index === 0) return;
-            setIndex(index - 1);
-          }}
-        >
-          <Text style={[style.buttonText, { color: text }]}>Previous</Text>
-        </Pressable>
-        <Pressable
-          style={[
-            style.button,
-            { width: 100, alignItems: "center", borderColor: secondary },
-          ]}
-          onPress={() => {
-            if (index === 49) return;
-            setIndex(index + 1);
-          }}
-        >
-          <Text style={[style.buttonText, { color: text }]}>Next</Text>
-        </Pressable>
-      </View>
-    </View>
+    <LinearGradient
+      style={style.container}
+      colors={[secondary, primary]}
+      start={{ x: 0.5, y: 0.3 }}
+      end={{ x: 0, y: 0.5 }}
+    >
+      <FlatList
+        data={recents?.items ?? []}
+        renderItem={({ item }) => <Track song={item} theme={theme} />}
+        keyExtractor={(item) => item?.played_at}
+        horizontal={false}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        disableIntervalMomentum
+      />
+    </LinearGradient>
   );
 }
 
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  listContainer: {},
   button: {
     margin: 30,
     borderWidth: 2,

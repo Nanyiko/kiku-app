@@ -1,4 +1,5 @@
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import ListenOnSpotify from "./ListenOnSpotify";
 
 const { height } = Dimensions.get("window");
 
@@ -11,17 +12,10 @@ export default function Track({ song, theme }) {
       .filter(Boolean)
       .join(", ") ?? "Unknown artist";
   const imageURI = song?.track?.album?.images[0]?.url;
+  const link = song?.track?.external_urls?.spotify;
   return (
-    <View style={style.cardContainer}>
-      <View
-        style={{
-          backgroundColor: secondary,
-          padding: 20,
-          marginHorizontal: 20,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+    <View style={style.container}>
+      <View style={[style.card]}>
         <Image
           source={{
             uri: imageURI,
@@ -30,25 +24,34 @@ export default function Track({ song, theme }) {
         />
         <Text style={[{ color: text }, style.songName]}>{songName}</Text>
         <Text style={[{ color: text }, style.artistName]}>{artistNames}</Text>
+        <ListenOnSpotify theme={theme} link={link} />
       </View>
     </View>
   );
 }
 
 const style = StyleSheet.create({
-  cardContainer: {
+  container: {
     height: height,
-    textAlign: "left",
+    textAlign: "center",
     justifyContent: "center",
     alignItems: "center",
+    marginHorizontal: 15,
+  },
+  card: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   songName: {
     fontSize: 40,
     fontWeight: "bold",
+    textAlign: "center",
   },
   artistName: {
     fontSize: 15,
     fontWeight: "200",
+    textAlign: "center",
   },
   image: {
     width: 300,
