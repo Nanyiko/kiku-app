@@ -186,34 +186,29 @@ export default function Recents() {
     fetchRecents(token);
   }, [tokensLoaded, token, refreshToken]);
 
-  return loading ? (
+  return (
     <LinearGradient
       style={style.container}
       colors={[secondary, primary]}
       start={{ x: 0.5, y: 0.3 }}
       end={{ x: 0, y: 0.5 }}
     >
-      <Text style={[{ color: text }]}>Loading...</Text>
-    </LinearGradient>
-  ) : (
-    <LinearGradient
-      style={style.container}
-      colors={[secondary, primary]}
-      start={{ x: 0.5, y: 0.3 }}
-      end={{ x: 0, y: 0.5 }}
-    >
-      <FlatList
-        data={recents?.items ?? []}
-        renderItem={({ item }) => <Track song={item} theme={theme} />}
-        keyExtractor={(item) => item?.played_at}
-        horizontal={false}
-        pagingEnabled
-        showsVerticalScrollIndicator={false}
-        snapToInterval={height}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        disableIntervalMomentum
-      />
+      {loading ? (
+        <Text style={[{ color: text }]}>Loading...</Text>
+      ) : (
+        <FlatList
+          data={recents?.items ?? []}
+          renderItem={({ item }) => <Track song={item} theme={theme} />}
+          keyExtractor={(item) => item?.played_at}
+          horizontal={false}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          snapToInterval={height}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          disableIntervalMomentum
+        />
+      )}
     </LinearGradient>
   );
 }

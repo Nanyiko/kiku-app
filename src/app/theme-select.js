@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 
@@ -8,6 +8,7 @@ export default function ThemeSelect() {
   const router = useRouter();
 
   const [selectedTheme, setSelectedTheme] = useState(0);
+  const [theme, setTheme] = useState("Soft Purple");
 
   const Option = ({ id, primary, tertiary }) => {
     const selected = selectedTheme === id;
@@ -42,6 +43,40 @@ export default function ThemeSelect() {
     );
   };
 
+  useEffect(() => {
+    const themeOptions = {
+      0: {
+        primary: "#C39BD3",
+        secondary: "#B892D4",
+        tertiary: "#D7A6C7",
+        text: "#FFFFFF",
+        label: "Soft Purple",
+      },
+      1: {
+        primary: "#B80F0A",
+        secondary: "#700D17",
+        tertiary: "#E5B700",
+        text: "#FFFFFF",
+        label: "Deep Red",
+      },
+      2: {
+        primary: "#F4C20D",
+        secondary: "#F28C28",
+        tertiary: "#C5D84E",
+        text: "#FFFFFF",
+        label: "Classic Yellow",
+      },
+      3: {
+        primary: "#FFFFFF",
+        secondary: "#F8F5E7",
+        tertiary: "#D7E4C2",
+        text: "#000000",
+        label: "Pure White",
+      },
+    };
+    setTheme(themeOptions[selectedTheme]["label"]);
+  }, [selectedTheme]);
+
   return (
     <View style={[style.container]}>
       <View style={style.headerContainer}>
@@ -53,6 +88,7 @@ export default function ThemeSelect() {
         <Option id={2} primary="#F4C20D" tertiary="#C5D84E" />
         <Option id={3} primary="#F8F5E7" tertiary="#FFFFFF" />
       </View>
+      <Text style={style.label}>{theme}</Text>
       <Pressable
         style={style.button}
         onPress={() => {
@@ -87,5 +123,8 @@ const style = StyleSheet.create({
   buttonText: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+  },
+  label: {
+    marginTop: 35,
   },
 });

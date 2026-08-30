@@ -1,3 +1,4 @@
+import moment from "moment";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 import ListenOnSpotify from "./ListenOnSpotify";
 
@@ -13,6 +14,8 @@ export default function Track({ song, theme }) {
       .join(", ") ?? "Unknown artist";
   const imageURI = song?.track?.album?.images[0]?.url;
   const link = song?.track?.external_urls?.spotify;
+  const time = song?.played_at;
+  const relativeTime = moment(time).fromNow();
   return (
     <View style={style.container}>
       <View style={[style.card]}>
@@ -24,6 +27,7 @@ export default function Track({ song, theme }) {
         />
         <Text style={[{ color: text }, style.songName]}>{songName}</Text>
         <Text style={[{ color: text }, style.artistName]}>{artistNames}</Text>
+        <Text style={[{ color: text }, style.time]}>{relativeTime}</Text>
         <ListenOnSpotify theme={theme} link={link} />
       </View>
     </View>
@@ -56,5 +60,8 @@ const style = StyleSheet.create({
   image: {
     width: 300,
     height: 300,
+  },
+  time: {
+    marginTop: 5,
   },
 });

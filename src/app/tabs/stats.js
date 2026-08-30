@@ -41,7 +41,11 @@ export default function Stats() {
       start={{ x: 0.5, y: 0.3 }}
       end={{ x: 0, y: 0.5 }}
     >
-      <Text style={{ color: text }}>Stats</Text>
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <Text style={{ color: text }}>Stats</Text>
+      )}
     </LinearGradient>
   );
 }
