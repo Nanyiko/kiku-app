@@ -1,3 +1,5 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
@@ -58,8 +60,24 @@ export default function TabsLayout() {
             tabBarPosition: "bottom",
           }}
         >
-          <Tabs.Screen name="recents" options={{ title: "Recents" }} />
-          <Tabs.Screen name="stats" options={{ title: "Stats" }} />
+          <Tabs.Screen
+            name="recents"
+            options={{
+              title: "Recents",
+              tabBarIcon: ({ color }) => (
+                <MaterialIcons size={30} name="queue-music" color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="stats"
+            options={{
+              title: "Stats",
+              tabBarIcon: ({ color }) => (
+                <Ionicons name="podium" size={30} color={color} />
+              ),
+            }}
+          />
         </Tabs>
       )}
     </SafeAreaView>

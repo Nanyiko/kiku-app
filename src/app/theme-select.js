@@ -74,13 +74,15 @@ export default function ThemeSelect() {
         label: "Pure White",
       },
     };
-    setTheme(themeOptions[selectedTheme]["label"]);
+    setTheme(themeOptions[selectedTheme]);
   }, [selectedTheme]);
 
   return (
-    <View style={[style.container]}>
+    <View style={[style.container, { backgroundColor: theme.primary }]}>
       <View style={style.headerContainer}>
-        <Text style={style.headerText}>Select the theme</Text>
+        <Text style={[style.headerText, { color: theme.text }]}>
+          Select the theme
+        </Text>
       </View>
       <View style={style.optionsContainer}>
         <Option id={0} primary="#C39BD3" tertiary="#D7A6C7" />
@@ -88,15 +90,18 @@ export default function ThemeSelect() {
         <Option id={2} primary="#F4C20D" tertiary="#C5D84E" />
         <Option id={3} primary="#F8F5E7" tertiary="#FFFFFF" />
       </View>
-      <Text style={style.label}>{theme}</Text>
+      <Text style={[style.label, { color: theme.text }]}>{theme?.label}</Text>
       <Pressable
-        style={style.button}
+        style={[
+          style.button,
+          { backgroundColor: theme.primary, borderColor: theme.secondary },
+        ]}
         onPress={() => {
           router.replace("/tabs");
           AsyncStorage.setItem("theme", `${selectedTheme}`);
         }}
       >
-        <Text style={style.buttonText}>Next</Text>
+        <Text style={[style.buttonText, { color: theme.text }]}>Next</Text>
       </Pressable>
     </View>
   );
@@ -109,7 +114,9 @@ const style = StyleSheet.create({
     alignItems: "center",
   },
   headerContainer: {},
-  headerText: {},
+  headerText: {
+    color: "#FFFFFF",
+  },
   optionsContainer: {
     display: "flex",
     flexDirection: "row",
@@ -117,8 +124,10 @@ const style = StyleSheet.create({
 
   button: {
     margin: 30,
-    borderWidth: 0.3,
     borderRadius: 10,
+    borderWidth: 1,
+    borderLeftWidth: 3,
+    borderBottomWidth: 3,
   },
   buttonText: {
     paddingHorizontal: 20,
@@ -126,5 +135,6 @@ const style = StyleSheet.create({
   },
   label: {
     marginTop: 35,
+    color: "#FFFFFF",
   },
 });

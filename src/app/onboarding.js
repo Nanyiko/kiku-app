@@ -111,7 +111,7 @@ export default function Onboarding() {
         }
 
         setProfile(data);
-        setUsername(data.display_name ?? "");
+        setUsername(data?.display_name ?? "");
         await AsyncStorage.setItem("username", username);
         await AsyncStorage.setItem("profile_pic_uri", data?.images[0]?.url);
       } catch (error) {
@@ -143,10 +143,11 @@ export default function Onboarding() {
           <View style={style.inputContainer}>
             <TextInput
               style={style.input}
-              value={displayName}
+              placeholder={username}
+              placeholderTextColor={"#FFFFFF"}
               onChangeText={setUsername}
               numberOfLines={1}
-              cursorColor={"#277DF5"}
+              cursorColor={"#1ED760"}
               textAlign="center"
               editable={false}
             />
@@ -173,6 +174,7 @@ const style = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#121212",
   },
   headerContainer: {
     display: "flex",
@@ -181,6 +183,7 @@ const style = StyleSheet.create({
   },
   headerText: {
     fontSize: 40,
+    color: "#FFFFFF",
   },
   inputContainer: {
     width: "100%",
@@ -189,11 +192,12 @@ const style = StyleSheet.create({
     justifyContent: "center",
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 0.3,
     borderRadius: 15,
-    borderColor: "#333333",
+    borderColor: "#FFFFFF",
     width: "90%",
     padding: 20,
+    color: "#FFFFFF",
   },
   profilePic: {
     width: 300,
@@ -208,10 +212,16 @@ const style = StyleSheet.create({
   button: {
     margin: 30,
     borderWidth: 0.3,
-    borderRadius: 10,
+    borderRadius: 20,
+    backgroundColor: "#1ED760",
+    width: 100,
+    justifyContent: "Center",
+    alignItems: "center",
   },
   buttonText: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    color: "#121212",
+    fontWeight: "bold",
   },
 });

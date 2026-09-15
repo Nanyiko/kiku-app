@@ -16,6 +16,8 @@ export default function Track({ song, theme }) {
   const link = song?.track?.external_urls?.spotify;
   const time = song?.played_at;
   const relativeTime = moment(time).fromNow();
+  const explicit = song?.track?.explicit;
+  console.log(explicit);
   return (
     <View style={style.container}>
       <View style={[style.card]}>
@@ -26,7 +28,32 @@ export default function Track({ song, theme }) {
           style={style.image}
         />
         <Text style={[{ color: text }, style.songName]}>{songName}</Text>
-        <Text style={[{ color: text }, style.artistName]}>{artistNames}</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 7.5,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {explicit && (
+            <Text
+              style={[
+                {
+                  color: "#F2F2F2",
+                  backgroundColor: "#ADADAD",
+                  padding: 2,
+                  paddingHorizontal: 7.5,
+                  borderRadius: 5,
+                  fontWeight: "semibold",
+                },
+              ]}
+            >
+              E
+            </Text>
+          )}
+          <Text style={[{ color: text }, style.artistName]}>{artistNames}</Text>
+        </View>
         <Text style={[{ color: text }, style.time]}>{relativeTime}</Text>
         <ListenOnSpotify theme={theme} link={link} />
       </View>

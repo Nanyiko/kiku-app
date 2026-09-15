@@ -1,7 +1,15 @@
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Dimensions, FlatList, StyleSheet, Text } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Track from "../../../components/Track";
 import getSelectedTheme from "../../../context/theme";
 
@@ -23,10 +31,8 @@ export default function Recents() {
   const [storedTheme, setStoredTheme] = useState("default");
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState(null);
-  const [renderStart, setRenderStart] = useState(0);
-  const [renderLimit, setRenderLimit] = useState(9);
   const [tokensLoaded, setTokensLoaded] = useState(false);
-  const [index, setIndex] = useState(0);
+  const [refresh, setRefresh] = useState(false);
 
   const listRef = useRef(null);
 
@@ -84,6 +90,7 @@ export default function Recents() {
           console.error("Error getting saved recent activity", e);
         }
       }
+      getSavedRecents();
       console.log("Recent data fetched");
       return;
     }
@@ -186,6 +193,94 @@ export default function Recents() {
     fetchRecents(token);
   }, [tokensLoaded, token, refreshToken]);
 
+  useEffect(() => {
+    const checkRecents = async (currentToken) => {
+      console.log("Refresh", refresh);
+      if (!refresh) {
+        try {
+          const response = await fetch(
+            "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+            {
+              headers: {
+                Authorization: `Bearer ${currentToken}`,
+              },
+            },
+          );
+
+          const data = await response.json();
+
+          if ("error" in data && data.error?.status === 401) {
+            if (!refreshToken) {
+              console.warn("No refresh token available");
+              return;
+            }
+
+            console.log("Fetching new token");
+
+            const refreshResponse = await fetch(
+              "https://accounts.spotify.com/api/token",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                  client_id: CLIENT_ID,
+                  grant_type: "refresh_token",
+                  refresh_token: refreshToken,
+                }).toString(),
+              },
+            );
+
+            const refreshData = await refreshResponse.json();
+            const newAccessToken = refreshData?.access_token;
+            const newRefreshToken = refreshData?.refresh_token ?? refreshToken;
+
+            if (!newAccessToken) {
+              console.error("Refresh token request failed:", refreshData);
+              return;
+            }
+
+            await AsyncStorage.setItem("access_token", newAccessToken);
+            await AsyncStorage.setItem("refresh_token", newRefreshToken);
+
+            setToken(newAccessToken);
+            setRefreshToken(newRefreshToken);
+
+            console.warn("Fetching recent data");
+            const retryResponse = await fetch(
+              "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+              {
+                headers: {
+                  Authorization: `Bearer ${newAccessToken}`,
+                },
+              },
+            );
+
+            const retryData = await retryResponse.json();
+
+            setRefresh(retryData !== recents);
+            console.log(refresh);
+            console.log("Recent data checked");
+            return;
+          }
+
+          setRefresh(data !== recents);
+          console.log(refresh);
+          console.log("Recent data checked");
+        } catch (error) {
+          console.error("Failed to fetch profile:", error);
+        }
+      }
+    };
+
+    while (!refresh) {
+      setTimeout(() => {
+        (checkRecents(token), 10000);
+      });
+    }
+  }, [recents]);
+
   return (
     <LinearGradient
       style={style.container}
@@ -196,18 +291,132 @@ export default function Recents() {
       {loading ? (
         <Text style={[{ color: text }]}>Loading...</Text>
       ) : (
-        <FlatList
-          data={recents?.items ?? []}
-          renderItem={({ item }) => <Track song={item} theme={theme} />}
-          keyExtractor={(item) => item?.played_at}
-          horizontal={false}
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-          snapToInterval={height}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          disableIntervalMomentum
-        />
+        <View style={{ alignItems: "center" }}>
+          {refresh === true && (
+            <Pressable
+              style={[style.refreshButton, { backgroundColor: primary }]}
+              onPress={async () => {
+                try {
+                  const response = await fetch(
+                    "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    },
+                  );
+
+                  const data = await response.json();
+
+                  if (!data || typeof data !== "object") {
+                    setRecents(null);
+                    return;
+                  }
+
+                  if ("error" in data && data.error?.status === 401) {
+                    if (!refreshToken) {
+                      console.warn("No refresh token available");
+                      return;
+                    }
+
+                    console.log("Fetching new token");
+
+                    const refreshResponse = await fetch(
+                      "https://accounts.spotify.com/api/token",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: new URLSearchParams({
+                          client_id: CLIENT_ID,
+                          grant_type: "refresh_token",
+                          refresh_token: refreshToken,
+                        }).toString(),
+                      },
+                    );
+
+                    const refreshData = await refreshResponse.json();
+                    const newAccessToken = refreshData?.access_token;
+                    const newRefreshToken =
+                      refreshData?.refresh_token ?? refreshToken;
+
+                    if (!newAccessToken) {
+                      console.error(
+                        "Refresh token request failed:",
+                        refreshData,
+                      );
+                      return;
+                    }
+
+                    await AsyncStorage.setItem("access_token", newAccessToken);
+                    await AsyncStorage.setItem(
+                      "refresh_token",
+                      newRefreshToken,
+                    );
+
+                    setToken(newAccessToken);
+                    setRefreshToken(newRefreshToken);
+
+                    console.warn("Fetching recent data");
+                    const retryResponse = await fetch(
+                      "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+                      {
+                        headers: {
+                          Authorization: `Bearer ${newAccessToken}`,
+                        },
+                      },
+                    );
+
+                    const retryData = await retryResponse.json();
+
+                    setRecents(retryData ?? null);
+                    console.log("Recent data fetch");
+                    try {
+                      const jsonValue = JSON.stringify(retryData);
+                      await AsyncStorage.setItem("recents", jsonValue);
+                    } catch (e) {
+                      console.error("Error saving recent data", e);
+                    }
+                    return;
+                  }
+
+                  console.warn("Fetching recent data");
+                  setRecents(data);
+                  console.log("Recent data fetched");
+                  listRef.current.scrollToIndex({
+                    index: 0,
+                    animated: true,
+                  });
+                  try {
+                    const jsonValue = JSON.stringify(data);
+                    await AsyncStorage.setItem("recents", jsonValue);
+                  } catch (e) {
+                    console.error("Error saving recent data", e);
+                  }
+                } catch (error) {
+                  console.error("Failed to fetch profile:", error);
+                }
+              }}
+            >
+              <Text style={{ color: text }}>Refresh</Text>
+              <EvilIcons name="refresh" size={24} color={text} />
+            </Pressable>
+          )}
+          <FlatList
+            data={recents?.items ?? []}
+            renderItem={({ item }) => <Track song={item} theme={theme} />}
+            keyExtractor={(item) => item?.played_at}
+            horizontal={false}
+            pagingEnabled
+            showsVerticalScrollIndicator={false}
+            snapToInterval={height}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            disableIntervalMomentum
+            ref={listRef}
+          />
+        </View>
       )}
     </LinearGradient>
   );
@@ -229,5 +438,17 @@ const style = StyleSheet.create({
   buttonText: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+  },
+  refreshButton: {
+    position: "absolute",
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    top: "10%",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 100,
+    flexDirection: "row",
+    gap: 5,
   },
 });

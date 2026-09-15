@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -75,12 +75,14 @@ export default function Index() {
 
   return (
     <View style={style.container}>
-      <Text>Spotify Login</Text>
-      <Button
-        title="Login with Spotify"
+      <Text style={{ color: "#FFFFFF" }}>Welcome to KiKU</Text>
+      <Pressable
         disabled={!request}
         onPress={() => promptAsync()}
-      />
+        style={style.button}
+      >
+        <Text style={style.buttonText}>Login with Spotify</Text>
+      </Pressable>
     </View>
   );
 }
@@ -90,5 +92,20 @@ const style = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#121212",
+  },
+  button: {
+    margin: 20,
+    width: 300,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1ED760",
+    borderRadius: 20,
+  },
+  buttonText: {
+    textAlign: "center",
+    color: "#121212",
+    fontWeight: "bold",
   },
 });
