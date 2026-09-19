@@ -59,13 +59,18 @@ export default function TabsLayout() {
             tabBarInactiveBackgroundColor: primary,
             tabBarPosition: "bottom",
           }}
+          screenListeners={{
+            tabPress: (e) => {
+              console.log(e);
+            },
+          }}
         >
           <Tabs.Screen
             name="recents"
             options={{
               title: "Recents",
               tabBarIcon: ({ color }) => (
-                <MaterialIcons size={30} name="queue-music" color={color} />
+                <MaterialIcons size={24} name="queue-music" color={color} />
               ),
             }}
           />
@@ -74,7 +79,7 @@ export default function TabsLayout() {
             options={{
               title: "Stats",
               tabBarIcon: ({ color }) => (
-                <Ionicons name="podium" size={30} color={color} />
+                <Ionicons name="podium" size={24} color={color} />
               ),
             }}
           />

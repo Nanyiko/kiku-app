@@ -1,4 +1,3 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -73,33 +72,39 @@ export default function Stats() {
     getTokens();
   }, []);
 
-  useEffect(() => {
-    if (searchInput !== "") {
-      console.log("Hi");
-    }
-  }, [searchInput]);
-
-  async function getData(timeRange) {
+  async function getData(timeRange, type) {
     setLoading(true);
     fetchData(
       token,
-      type.toLowerCase(),
-      timeRange,
       refreshToken,
       setToken,
       setRefreshToken,
-      setLoading,
-      setData,
+      `https://api.spotify.com/v1/me/top/${type.toLowerCase()}?time_range=${timeRange}&limit=50`,
+      async (data) => {
+        console.log("Data fetched");
+        setLoading(false);
+        try {
+          setData(data);
+          const jsonValue = JSON.stringify(data);
+          await AsyncStorage.setItem(`${timeRange}_${type}`, jsonValue);
+        } catch (e) {
+          console.error("Error saving data", e);
+        }
+      },
     );
   }
 
   useEffect(() => {
+    if (tokensLoaded === true) getData(term, type);
+  }, [token, tokensLoaded, refreshToken]);
+
+  useEffect(() => {
     setData(async () => {
       const jsonValue = await AsyncStorage.getItem(`${term}_${type}`);
-      if (jsonValue === null) getData(term);
+      if (jsonValue === null) getData(term, type);
       return jsonValue != null ? JSON.parse(jsonValue) : null;
     });
-  }, [type]);
+  }, [type, term]);
 
   return (
     <LinearGradient
@@ -115,18 +120,27 @@ export default function Stats() {
             style.header,
           ]}
         >
-          <View style={[style.headerText]}>
-            <Text style={[{ color: text }, style.label]}>{type}</Text>
-            <Pressable
-              onPress={() => {
-                if (type === "Tracks") setType("Artists");
-                if (type === "Artists") setType("Tracks");
-              }}
-            >
-              <FontAwesome name="exchange" size={30} color={text} />
-            </Pressable>
-          </View>
+          <SegmentedControl
+            labels={["Artists", "Tracks"]}
+            values={["Artists", "Tracks"]}
+            theme={theme}
+            size="x-large"
+            handleClick={(type) => {
+              setType(type);
+              getData(term, type);
+            }}
+          />
         </View>
+        <SegmentedControl
+          labels={["4 weeks", "6 months", "1 year"]}
+          values={["short_term", "medium_term", "long_term"]}
+          theme={theme}
+          size="medium"
+          handleClick={(term) => {
+            setTerm(term);
+            getData(term, type);
+          }}
+        />
         <View
           style={{
             width: "100%",
@@ -157,15 +171,6 @@ export default function Stats() {
             </Pressable>
           </View>
         </View>
-        <SegmentedControl
-          values={["4 weeks", "6 months", "1 year"]}
-          terms={["short_term", "medium_term", "long_term"]}
-          theme={theme}
-          handleClick={(term) => {
-            getData(term);
-            setTerm(term);
-          }}
-        />
         {loading ? (
           <Text style={{ color: text }}>Loading...</Text>
         ) : (
@@ -223,11 +228,14 @@ const style = StyleSheet.create({
   },
   header: {
     margin: 20,
-    minWidth: "90%",
+    width: "90%",
     borderRadius: 15,
     borderTopWidth: 1,
     borderRightWidth: 1,
     borderWidth: 3,
+    justifyContent: "center",
+    alignItems: "center",
+    top: "2%",
   },
   headerText: {
     padding: 5,

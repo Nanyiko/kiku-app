@@ -2,28 +2,44 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function SegmentedControl({
-  values,
+  labels,
   theme,
   handleClick,
-  terms,
+  values,
+  size,
 }) {
   const { primary, secondary, tertiary, text } = theme;
-  const [selected, setSelected] = useState(values[0]);
+  const [selected, setSelected] = useState(labels[0]);
+  const fontSizes = {
+    medium: 16,
+    "x-large": 35,
+  };
   return (
     <View style={[{ backgroundColor: primary }, styles.container]}>
-      {values.map((value, index) => (
+      {labels.map((label, index) => (
         <Pressable
           key={index}
           onPress={() => {
-            setSelected(value);
-            handleClick(terms[index]);
+            setSelected(label);
+            handleClick(values[index]);
           }}
           style={[
             styles.button,
-            selected === value && { backgroundColor: tertiary },
+            selected === label && { backgroundColor: tertiary },
+            { width: `${100 / labels.length}%` },
           ]}
         >
-          <Text style={[{ color: text }]}>{value}</Text>
+          <Text
+            style={[
+              {
+                color: text,
+                fontSize: fontSizes[size],
+                fontWeight: "bold",
+              },
+            ]}
+          >
+            {label}
+          </Text>
         </Pressable>
       ))}
     </View>
@@ -34,11 +50,14 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     margin: 5,
+    marginHorizontal: 20,
     borderRadius: 15,
   },
   button: {
-    padding: 20,
-    margin: 2,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
     borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

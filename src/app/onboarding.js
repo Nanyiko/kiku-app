@@ -1,14 +1,8 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -17,6 +11,7 @@ export default function Onboarding() {
   const [refreshToken, setRefreshToken] = useState(null);
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState(username);
 
   const router = useRouter();
 
@@ -123,7 +118,11 @@ export default function Onboarding() {
   }, [token, refreshToken]);
 
   const profileImage = profile?.images?.[0]?.url;
-  const displayName = username || profile?.display_name || "KiKU User";
+  useEffect(() => {
+    setDisplayName(() => {
+      return username || profile?.display_name || "KiKU User";
+    });
+  }, [username]);
 
   return (
     <View style={style.container}>
@@ -135,22 +134,13 @@ export default function Onboarding() {
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={style.profilePic} />
             ) : (
-              <View style={[style.profilePic, style.placeholderAvatar]} />
+              <FontAwesome name="user-circle-o" size={300} color="#FFFFFF" />
             )}
             <Text style={style.headerText}>Welcome to KiKU</Text>
           </View>
 
           <View style={style.inputContainer}>
-            <TextInput
-              style={style.input}
-              placeholder={username}
-              placeholderTextColor={"#FFFFFF"}
-              onChangeText={setUsername}
-              numberOfLines={1}
-              cursorColor={"#1ED760"}
-              textAlign="center"
-              editable={false}
-            />
+            <Text style={style.displayName}>{displayName}</Text>
           </View>
 
           <Pressable
@@ -186,18 +176,14 @@ const style = StyleSheet.create({
     color: "#FFFFFF",
   },
   inputContainer: {
-    width: "100%",
-    height: 20,
+    width: "70%",
     flexDirection: "row",
     justifyContent: "center",
-  },
-  input: {
-    borderWidth: 0.3,
-    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
     borderColor: "#FFFFFF",
-    width: "90%",
-    padding: 20,
-    color: "#FFFFFF",
+    borderRadius: 15,
   },
   profilePic: {
     width: 300,
@@ -223,5 +209,8 @@ const style = StyleSheet.create({
     paddingVertical: 10,
     color: "#121212",
     fontWeight: "bold",
+  },
+  displayName: {
+    color: "#FFFFFF",
   },
 });

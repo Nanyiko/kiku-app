@@ -2,23 +2,18 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const fetchData = async (
   currentToken,
-  type,
-  time_range,
   refreshToken,
   setToken,
   setRefreshToken,
-  setLoading,
-  setData,
+  endpoint,
+  afterFetch,
 ) => {
   try {
-    const response = await fetch(
-      `https://api.spotify.com/v1/me/top/${type}?time_range=${time_range}&limit=50`,
-      {
-        headers: {
-          Authorization: `Bearer ${currentToken}`,
-        },
+    const response = await fetch(endpoint, {
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
       },
-    );
+    });
 
     const data = await response.json();
 
@@ -61,38 +56,19 @@ const fetchData = async (
       setRefreshToken(newRefreshToken);
 
       console.warn("Fetching data");
-      const retryResponse = await fetch(
-        `https://api.spotify.com/v1/me/top/${type}?time_range=${time_range}&limit=50`,
-        {
-          headers: {
-            Authorization: `Bearer ${newAccessToken}`,
-          },
+      const retryResponse = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${newAccessToken}`,
         },
-      );
+      });
 
       const retryData = await retryResponse.json();
-      console.log("Data fetched");
-      setLoading(false);
-      try {
-        setData(retryData);
-        const jsonValue = JSON.stringify(retryData);
-        await AsyncStorage.setItem(`${time_range}_${type}`, jsonValue);
-      } catch (e) {
-        console.error("Error saving data", e);
-      }
+      afterFetch(retryData);
       return;
     }
 
     console.warn("Fetching data");
-    console.log("Data fetched");
-    setLoading(false);
-    try {
-      setData(data);
-      const jsonValue = JSON.stringify(data);
-      await AsyncStorage.setItem(`${time_range}_${type}`, jsonValue);
-    } catch (e) {
-      console.error("Error saving data", e);
-    }
+    afterFetch(data);
   } catch (error) {
     console.error("Failed to fetch profile:", error);
   }

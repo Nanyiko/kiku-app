@@ -17,7 +17,6 @@ export default function Track({ song, theme }) {
   const time = song?.played_at;
   const relativeTime = moment(time).fromNow();
   const explicit = song?.track?.explicit;
-  console.log(explicit);
   return (
     <View style={style.container}>
       <View style={[style.card]}>
