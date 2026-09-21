@@ -19,6 +19,10 @@ export default function RootLayout() {
         name="tabs"
         options={{ title: "Home", headerShown: false }}
       />
+      <Stack.Screen
+        name="callback"
+        options={{ title: "Callback", headerShown: false }}
+      />
     </Stack>
   );
 }

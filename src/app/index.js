@@ -16,8 +16,10 @@ export default function Index() {
 
   const redirectUri = AuthSession.makeRedirectUri({
     useProxy: true,
+    scheme: "kikuapp",
+    path: "callback",
   });
-  console.log(redirectUri);
+  console.log("redirectUri:", redirectUri);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
