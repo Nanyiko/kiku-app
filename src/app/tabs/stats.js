@@ -121,8 +121,16 @@ export default function Stats() {
           ]}
         >
           <SegmentedControl
-            labels={["Artists", "Tracks"]}
-            values={["Artists", "Tracks"]}
+            items={[
+              {
+                label: "Artists",
+                value: "Artists",
+              },
+              {
+                label: "Tracks",
+                value: "Tracks",
+              },
+            ]}
             theme={theme}
             size="x-large"
             handleClick={(type) => {
@@ -132,8 +140,20 @@ export default function Stats() {
           />
         </View>
         <SegmentedControl
-          labels={["4 weeks", "6 months", "1 year"]}
-          values={["short_term", "medium_term", "long_term"]}
+          items={[
+            {
+              label: "4 Weeks",
+              value: "short_term",
+            },
+            {
+              label: "6 months",
+              value: "medium_term",
+            },
+            {
+              label: "1 year",
+              value: "long_term",
+            },
+          ]}
           theme={theme}
           size="medium"
           handleClick={(term) => {

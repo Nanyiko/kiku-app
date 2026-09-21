@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function SegmentedControl({
-  labels,
-  theme,
-  handleClick,
-  values,
-  size,
-}) {
+export default function SegmentedControl({ items, theme, handleClick, size }) {
+  const labels = [];
+  const values = [];
+  for (let item of items) {
+    labels.push(item.label);
+    values.push(item.value);
+  }
   const { primary, secondary, tertiary, text } = theme;
   const [selected, setSelected] = useState(labels[0]);
   const fontSizes = {
@@ -16,16 +16,16 @@ export default function SegmentedControl({
   };
   return (
     <View style={[{ backgroundColor: primary }, styles.container]}>
-      {labels.map((label, index) => (
+      {items.map((item, index) => (
         <Pressable
           key={index}
           onPress={() => {
-            setSelected(label);
-            handleClick(values[index]);
+            setSelected(item.label);
+            handleClick(item.value);
           }}
           style={[
             styles.button,
-            selected === label && { backgroundColor: tertiary },
+            selected === item.label && { backgroundColor: tertiary },
             { width: `${100 / labels.length}%` },
           ]}
         >
@@ -38,7 +38,7 @@ export default function SegmentedControl({
               },
             ]}
           >
-            {label}
+            {item.label}
           </Text>
         </Pressable>
       ))}
