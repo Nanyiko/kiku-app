@@ -1,3 +1,4 @@
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -80,6 +81,15 @@ export default function TabsLayout() {
               title: "Stats",
               tabBarIcon: ({ color }) => (
                 <Ionicons name="podium" size={24} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="stats"
+            options={{
+              title: "Friends",
+              tabBarIcon: ({ color }) => (
+                <FontAwesome5 name="user-friends" size={24} color={color} />
               ),
             }}
           />
