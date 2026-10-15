@@ -60,11 +60,6 @@ export default function TabsLayout() {
             tabBarInactiveBackgroundColor: primary,
             tabBarPosition: "bottom",
           }}
-          screenListeners={{
-            tabPress: (e) => {
-              console.log(e);
-            },
-          }}
         >
           <Tabs.Screen
             name="recents"
