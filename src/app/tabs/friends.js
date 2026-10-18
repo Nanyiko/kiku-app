@@ -1,8 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { FlatList, View, StyleSheet, Text, Pressable } from "react-native";
+import { getFriends } from "../../services/api";
 import getSelectedTheme from "../../../context/theme";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -18,6 +20,7 @@ export default function Friends() {
   const [loading, setLoading] = useState(true);
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [storedTheme, setStoredTheme] = useState("default");
+  const [friendsList, setFriendsList] = useState(null);
 
   const { primary, secondary, tertiary, text } = theme;
 
@@ -28,10 +31,8 @@ export default function Friends() {
         setTheme(selectedTheme);
         const savedTheme = await AsyncStorage.getItem("theme");
         setStoredTheme(savedTheme ?? "default");
-        setLoading(false);
       } catch (error) {
         console.warn("Failed to load recents data:", error);
-        setLoading(false);
       }
     };
 
@@ -55,6 +56,26 @@ export default function Friends() {
 
     getTokens();
   }, []);
+
+  useEffect(() => {
+    if (!tokensLoaded || !token) {
+      return;
+    }
+
+    const loadFriends = async () => {
+      try {
+        const result = await getFriends();
+        setFriendsList(result);
+        console.log("Friends API result:", result?.friends);
+        setLoading(false);
+      } catch (error) {
+        console.error("Friends API error:", error.message);
+        setLoading(false);
+      }
+    };
+
+    loadFriends();
+  }, [token, tokensLoaded]);
   return (
     <LinearGradient
       style={style.container}
@@ -62,7 +83,33 @@ export default function Friends() {
       start={{ x: 0.5, y: 0.3 }}
       end={{ x: 0, y: 0.5 }}
     >
-      <Text style={style.leText}>Friends twin</Text>
+      {loading ? (
+        <Text style={{ color: text }}>Loading...</Text>
+      ) : (
+        <View style={{ flex: 1, top: "5%" }}>
+          <View style={style.header}>
+            <Text style={[style.headerText, { color: text }]}>Friends</Text>
+            <Pressable style={[style.addButton, { backgroundColor: primary }]}>
+              <AntDesign name="usergroup-add" size={24} color="black" />
+              <Text style={style.addButtonText}>ADD</Text>
+            </Pressable>
+          </View>
+          <FlatList
+            data={friendsList?.friends || []}
+            renderItem={({ item }) => {
+              return (
+                <View key={item?.id} style={style.item}>
+                  <Text>{item?.display_name}</Text>
+                </View>
+              );
+            }}
+            contentContainerStyle={{
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          />
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -70,8 +117,34 @@ export default function Friends() {
 const style = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  headerText: {
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+  item: {
+    padding: 10,
+  },
+  friendsListText: {},
+  addButton: {
+    margin: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 70,
+    flexDirection: "row",
+    gap: 7.5,
   },
-  leText: {},
+  addButtonText: {
+    fontWeight: "semibold",
+  },
 });
