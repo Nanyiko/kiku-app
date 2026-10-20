@@ -99,6 +99,7 @@ export default function ThemeSelect() {
         onPress={() => {
           router.replace("/tabs");
           AsyncStorage.setItem("theme", `${selectedTheme}`);
+          AsyncStorage.setItem("authenticated", "true");
         }}
       >
         <Text style={[style.buttonText, { color: theme.text }]}>Next</Text>

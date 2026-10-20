@@ -54,3 +54,36 @@ export function respondToFriendRequest(requestId, status) {
     body: JSON.stringify({ status }),
   });
 }
+
+export async function registerSpotifyTokens(tokenResponse) {
+  const { accessToken, refreshToken, expiresIn, scope } = tokenResponse;
+
+  if (!accessToken || !refreshToken || !expiresIn) {
+    throw new Error(
+      "Spotify token response is missing accessToken, refreshToken, or expiresIn",
+    );
+  }
+
+  const response = await fetch(`${API_URL}/api/auth/spotify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      refreshToken,
+      expiresIn,
+      scopes: scope || "",
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error || `Spotify token registration failed (${response.status})`,
+    );
+  }
+
+  return data.user;
+}

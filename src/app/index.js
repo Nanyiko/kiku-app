@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { registerSpotifyTokens } from "../services/api";
 import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -15,12 +16,11 @@ export default function Index() {
   useEffect(() => {
     async function skipAuth() {
       const access_token = await AsyncStorage.getItem("access_token");
-      const authenticated = Boolean(
-        await AsyncStorage.getItem("authenticated"),
-      );
-      if (authenticated) return;
-      if (access_token) {
+      const theme = await AsyncStorage.getItem("theme");
+      if (access_token && theme) {
         router.replace("continue");
+      } else if (!theme) {
+        router.replace("/theme-select");
       } else return;
     }
     skipAuth();
@@ -58,34 +58,55 @@ export default function Index() {
   }, [response]);
 
   const exchangeCode = async (code, codeVerifier) => {
-    const body = new URLSearchParams({
-      client_id: CLIENT_ID,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-      code_verifier: codeVerifier,
-    }).toString();
+    try {
+      const body = new URLSearchParams({
+        client_id: CLIENT_ID,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+        code_verifier: codeVerifier,
+      }).toString();
 
-    const tokenResponse = await fetch(
-      "https://accounts.spotify.com/api/token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+      const tokenResponse = await fetch(
+        "https://accounts.spotify.com/api/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body,
         },
-        body,
-      },
-    );
+      );
 
-    const data = await tokenResponse.json();
-    console.log("TOKEN RESPONSE:", data);
+      const data = await tokenResponse.json();
 
-    if (data.access_token) {
+      if (!tokenResponse.ok || !data.access_token) {
+        console.error(
+          "Spotify token exchange failed:",
+          data.error || data.error_description || tokenResponse.status,
+        );
+        return;
+      }
+
       await AsyncStorage.setItem("access_token", data.access_token);
       await AsyncStorage.setItem("refresh_token", data.refresh_token);
+
+      try {
+        const kikuUser = await registerSpotifyTokens({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          expiresIn: data.expires_in,
+          scope: data.scope || "",
+        });
+
+        console.log("Kiku account registered:", kikuUser.id);
+      } catch (error) {
+        console.error("Token persistence failed:", error.message);
+      }
+
       router.replace("/onboarding");
-    } else {
-      console.log("Token failed:", data);
+    } catch (error) {
+      console.error("Login failed:", error.message);
     }
   };
 

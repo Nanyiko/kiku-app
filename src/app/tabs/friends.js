@@ -100,12 +100,20 @@ export default function Friends() {
             <Text style={[style.addButtonText, { color: text }]}>ADD</Text>
           </Pressable>
         </View>
-        <View>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "flex-start",
+          }}
+        >
           {loading ? (
-            <Text style={[{ color: text }]}>Loading...</Text>
+            <Text style={[{ color: text, textAlign: "center" }]}>
+              Loading...
+            </Text>
           ) : (
             <FlatList
-              data={friendsList?.friends || []}
+              data={friendsList?.friends}
               renderItem={({ item }) => {
                 return (
                   <Pressable key={item?.id} style={style.item}>
@@ -131,7 +139,9 @@ export default function Friends() {
               contentContainerStyle={{
                 flex: 1,
                 width: width,
-                justifyContent: "center",
+              }}
+              ListEmptyComponent={() => {
+                return <Text style={{ color: text }}>You have no friends</Text>;
               }}
             />
           )}
