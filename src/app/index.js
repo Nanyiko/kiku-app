@@ -12,6 +12,20 @@ const discovery = {
 };
 
 export default function Index() {
+  useEffect(() => {
+    async function skipAuth() {
+      const access_token = await AsyncStorage.getItem("access_token");
+      const authenticated = Boolean(
+        await AsyncStorage.getItem("authenticated"),
+      );
+      if (authenticated) return;
+      if (access_token) {
+        router.replace("continue");
+      } else return;
+    }
+    skipAuth();
+  }, []);
+
   const router = useRouter();
 
   const redirectUri = AuthSession.makeRedirectUri({

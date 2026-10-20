@@ -1,7 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { FlatList, View, StyleSheet, Text, Pressable } from "react-native";
+import {
+  FlatList,
+  View,
+  StyleSheet,
+  Text,
+  Pressable,
+  Image,
+  Dimensions,
+} from "react-native";
 import { getFriends } from "../../services/api";
 import getSelectedTheme from "../../../context/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -23,6 +31,7 @@ export default function Friends() {
   const [friendsList, setFriendsList] = useState(null);
 
   const { primary, secondary, tertiary, text } = theme;
+  const { width } = Dimensions.get("screen");
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,33 +92,51 @@ export default function Friends() {
       start={{ x: 0.5, y: 0.3 }}
       end={{ x: 0, y: 0.5 }}
     >
-      {loading ? (
-        <Text style={{ color: text }}>Loading...</Text>
-      ) : (
-        <View style={{ flex: 1, top: "5%" }}>
-          <View style={style.header}>
-            <Text style={[style.headerText, { color: text }]}>Friends</Text>
-            <Pressable style={[style.addButton, { backgroundColor: primary }]}>
-              <AntDesign name="usergroup-add" size={24} color="black" />
-              <Text style={style.addButtonText}>ADD</Text>
-            </Pressable>
-          </View>
-          <FlatList
-            data={friendsList?.friends || []}
-            renderItem={({ item }) => {
-              return (
-                <View key={item?.id} style={style.item}>
-                  <Text>{item?.display_name}</Text>
-                </View>
-              );
-            }}
-            contentContainerStyle={{
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          />
+      <View style={{ flex: 1, top: "5%" }}>
+        <View style={style.header}>
+          <Text style={[style.headerText, { color: text }]}>Friends</Text>
+          <Pressable style={[style.addButton, { backgroundColor: primary }]}>
+            <AntDesign name="usergroup-add" size={24} color={text} />
+            <Text style={[style.addButtonText, { color: text }]}>ADD</Text>
+          </Pressable>
         </View>
-      )}
+        <View>
+          {loading ? (
+            <Text style={[{ color: text }]}>Loading...</Text>
+          ) : (
+            <FlatList
+              data={friendsList?.friends || []}
+              renderItem={({ item }) => {
+                return (
+                  <Pressable key={item?.id} style={style.item}>
+                    <Image
+                      source={{ uri: item?.profile_pic }}
+                      style={style.profilePic}
+                    />
+                    <View>
+                      <Text
+                        style={[
+                          { color: text, fontWeight: "bold", fontSize: 20 },
+                        ]}
+                      >
+                        {item?.display_name}
+                      </Text>
+                      <Text style={{ color: text, fontWeight: "light" }}>
+                        Random song - Random Artist
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              }}
+              contentContainerStyle={{
+                flex: 1,
+                width: width,
+                justifyContent: "center",
+              }}
+            />
+          )}
+        </View>
+      </View>
     </LinearGradient>
   );
 }
@@ -131,9 +158,12 @@ const style = StyleSheet.create({
     fontWeight: "bold",
   },
   item: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
     padding: 10,
+    width: "90%",
   },
-  friendsListText: {},
   addButton: {
     margin: 5,
     paddingVertical: 10,
@@ -146,5 +176,10 @@ const style = StyleSheet.create({
   },
   addButtonText: {
     fontWeight: "semibold",
+  },
+  profilePic: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
 });
