@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
+
 const fetchData = async (
   currentToken,
   refreshToken,

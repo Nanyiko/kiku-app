@@ -29,12 +29,20 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
+export function getUsers() {
+  return apiRequest("/api/users");
+}
+
 export function getFriends() {
   return apiRequest("/api/friends");
 }
 
-export function getFriendRequests() {
-  return apiRequest("/api/friends/requests");
+export function getIncomingFriendRequests() {
+  return apiRequest("/api/friends/requests/incoming");
+}
+
+export function getSentFriendRequests() {
+  return apiRequest("/api/friends/requests/sent");
 }
 
 export function sendFriendRequest(receiverId) {
@@ -54,6 +62,7 @@ export function respondToFriendRequest(requestId, status) {
     body: JSON.stringify({ status }),
   });
 }
+[];
 
 export async function registerSpotifyTokens(tokenResponse) {
   const { accessToken, refreshToken, expiresIn, scope } = tokenResponse;

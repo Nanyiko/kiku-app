@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
 export default function Artist({ item, theme, ranking, type }) {
   const { width } = Dimensions.get("screen");
@@ -10,6 +10,8 @@ export default function Artist({ item, theme, ranking, type }) {
           .filter(Boolean)
           .join(", ") ?? "Unknown artist")
       : null;
+  const imageUrl =
+    type == "Tracks" ? item?.album?.images[0]?.url : item?.images[0]?.url;
   return (
     <View
       key={item?.id}
@@ -19,9 +21,8 @@ export default function Artist({ item, theme, ranking, type }) {
       ]}
     >
       <Text style={[{ color: text }, styles.ranking]}>#{ranking}</Text>
-      <View
-        style={{ borderWidth: 0.5, borderColor: text, height: "100%" }}
-      ></View>
+      <View style={[styles.separator, { borderColor: text }]}></View>
+      <Image source={{ uri: imageUrl }} style={styles.image} />
       <View>
         <Text style={[{ color: text }, styles.artist]}>{item?.name}</Text>
         {type === "Tracks" && (
@@ -51,4 +52,10 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
   },
+  image: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  separator: { borderWidth: 0.5, height: "100%" },
 });

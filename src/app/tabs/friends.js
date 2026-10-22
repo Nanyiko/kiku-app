@@ -13,6 +13,7 @@ import {
 import { getFriends } from "../../services/api";
 import getSelectedTheme from "../../../context/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useRouter } from "expo-router";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -85,6 +86,8 @@ export default function Friends() {
 
     loadFriends();
   }, [token, tokensLoaded]);
+
+  const router = useRouter();
   return (
     <LinearGradient
       style={style.container}
@@ -95,7 +98,12 @@ export default function Friends() {
       <View style={{ flex: 1, top: "5%" }}>
         <View style={style.header}>
           <Text style={[style.headerText, { color: text }]}>Friends</Text>
-          <Pressable style={[style.addButton, { backgroundColor: primary }]}>
+          <Pressable
+            style={[style.addButton, { backgroundColor: primary }]}
+            onPress={() => {
+              router.navigate("/add-friends");
+            }}
+          >
             <AntDesign name="usergroup-add" size={24} color={text} />
             <Text style={[style.addButtonText, { color: text }]}>ADD</Text>
           </Pressable>
