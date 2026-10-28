@@ -11,6 +11,7 @@ export default function SegmentedControl({ items, theme, handleClick, size }) {
   const { primary, secondary, tertiary, text } = theme;
   const [selected, setSelected] = useState(labels[0]);
   const fontSizes = {
+    small: 10,
     medium: 16,
     "x-large": 35,
   };

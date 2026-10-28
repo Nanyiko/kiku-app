@@ -33,6 +33,10 @@ export function getUsers() {
   return apiRequest("/api/users");
 }
 
+export function getMe() {
+  return apiRequest("/api/users/me");
+}
+
 export function getFriends() {
   return apiRequest("/api/friends");
 }

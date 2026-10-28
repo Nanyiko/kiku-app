@@ -121,7 +121,9 @@ export default function Continue() {
     <View style={styles.container}>
       <Text style={styles.promptText}>Continue as:</Text>
       <Text style={styles.displayName}>{displayName}</Text>
-      <Image source={{ uri: profilePicUri }} style={styles.profilePic} />
+      {profilePicUri !== "" && (
+        <Image source={{ uri: profilePicUri }} style={styles.profilePic} />
+      )}
       <Pressable
         style={[styles.button, { backgroundColor: "#1ED760" }]}
         onPress={() => {
