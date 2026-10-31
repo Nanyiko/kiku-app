@@ -108,7 +108,10 @@ export default function Onboarding() {
         setProfile(data);
         setUsername(data?.display_name ?? "");
         await AsyncStorage.setItem("username", username);
-        await AsyncStorage.setItem("profile_pic_uri", data?.images[0]?.url);
+        await AsyncStorage.setItem(
+          "profile_pic_uri",
+          data?.images[0]?.url || "none",
+        );
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       }
@@ -131,7 +134,7 @@ export default function Onboarding() {
       ) : (
         <>
           <View style={style.headerContainer}>
-            {profileImage ? (
+            {profileImage === "none" ? (
               <Image source={{ uri: profileImage }} style={style.profilePic} />
             ) : (
               <FontAwesome name="user-circle-o" size={300} color="#FFFFFF" />

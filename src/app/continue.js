@@ -4,6 +4,7 @@ import * as AuthSession from "expo-auth-session";
 import { View, Image, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -121,8 +122,10 @@ export default function Continue() {
     <View style={styles.container}>
       <Text style={styles.promptText}>Continue as:</Text>
       <Text style={styles.displayName}>{displayName}</Text>
-      {profilePicUri !== "" && (
+      {profilePicUri !== "none" ? (
         <Image source={{ uri: profilePicUri }} style={styles.profilePic} />
+      ) : (
+        <FontAwesome name="user-circle-o" size={300} color="#FFFFFF" />
       )}
       <Pressable
         style={[styles.button, { backgroundColor: "#1ED760" }]}

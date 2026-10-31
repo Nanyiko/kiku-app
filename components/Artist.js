@@ -1,8 +1,7 @@
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 export default function Artist({ item, theme, ranking, type }) {
-  const { width } = Dimensions.get("screen");
-  const { primary, secondary, tertiary, text } = theme;
+  const { primary, secondary, text } = theme;
   const artistNames =
     type == "Tracks"
       ? (item?.artists
@@ -16,14 +15,14 @@ export default function Artist({ item, theme, ranking, type }) {
     <View
       key={item?.id}
       style={[
-        { backgroundColor: primary, borderColor: secondary, width: width - 20 },
+        { backgroundColor: primary, borderColor: secondary },
         styles.container,
       ]}
     >
       <Text style={[{ color: text }, styles.ranking]}>#{ranking}</Text>
-      <View style={[styles.separator, { borderColor: text }]}></View>
+      <View style={[styles.separator, { borderColor: text }]} />
       <Image source={{ uri: imageUrl }} style={styles.image} />
-      <View>
+      <View style={styles.details}>
         <Text style={[{ color: text }, styles.artist]}>{item?.name}</Text>
         {type === "Tracks" && (
           <Text style={[{ color: text }]}>{artistNames}</Text>
@@ -35,18 +34,21 @@ export default function Artist({ item, theme, ranking, type }) {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    margin: 10,
-    marginHorizontal: 0,
+    width: "100%",
     borderWidth: 2,
     borderRadius: 10,
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
   },
+  details: {
+    flex: 1,
+    minWidth: 0,
+  },
   artist: {
     fontSize: 20,
     fontWeight: "semibold",
-    width: "100%",
+    flexShrink: 1,
   },
   ranking: {
     fontSize: 26,
@@ -57,5 +59,5 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  separator: { borderWidth: 0.5, height: "100%" },
+  separator: { borderWidth: 0.5, alignSelf: "stretch" },
 });

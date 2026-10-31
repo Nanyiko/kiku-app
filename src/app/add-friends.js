@@ -6,6 +6,9 @@ import {
   StyleSheet,
   TextInput,
   FlatList,
+  Platform,
+  ToastAndroid,
+  Alert,
 } from "react-native";
 import getSelectedTheme from "../../context/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -45,12 +48,16 @@ export default function AddFriends() {
   const [incomingFriendRequests, setIncomingFriendRequests] = useState(null);
   const [sentFriendsRequests, setSentFriendRequests] = useState(null);
   const [me, setMe] = useState(null);
-  const [relationshipsLoaded, setRelationshipsLoaded] = useState(false);
   const [screen, setScreen] = useState("search");
+  const [refreshing, setRefreshing] = useState(false);
+  const [requireRefresh, setRequireRefresh] = useState(false);
+  const [usersWithFriendshipStatus, setUsersWithFriendshipStatus] = useState(
+    [],
+  );
 
   const { primary, secondary, tertiary, text } = theme;
 
-  const usersWithFriendshipStatus = useMemo(() => {
+  function enrichUserList() {
     if (
       !Array.isArray(users) ||
       !Array.isArray(friendsList) ||
@@ -58,16 +65,15 @@ export default function AddFriends() {
       !Array.isArray(incomingFriendRequests) ||
       !me
     ) {
-      return [];
+      return;
     }
 
-    return users.map((user) => {
+    const enrichedUsers = users.map((user) => {
       const isFriend = friendsList.some(
         (friend) => String(friend.id) === String(user.id),
       );
 
       if (isFriend) {
-        console.log("Is friend");
         return { ...user, friend_status: "friend" };
       }
 
@@ -78,7 +84,6 @@ export default function AddFriends() {
       );
 
       if (isRequestSent) {
-        console.log("Request sent");
         return { ...user, friend_status: "request_sent" };
       }
 
@@ -89,14 +94,16 @@ export default function AddFriends() {
       );
 
       if (isRequestReceived) {
-        console.log("Request sent");
         return { ...user, friend_status: "request_received" };
       }
 
-      console.log("none");
       return { ...user, friend_status: "none" };
     });
-  }, [users, friendsList, sentFriendsRequests, incomingFriendRequests, me]);
+
+    setUsersWithFriendshipStatus(enrichedUsers);
+    console.log("Enriched users:", enrichedUsers);
+    setLoading(false);
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -140,10 +147,8 @@ export default function AddFriends() {
         const result = await getUsers();
         setUsers(result?.users ?? []);
         console.log("Users API result:", result?.users);
-        setLoading(false);
       } catch (error) {
         console.error("Users API error:", error.message);
-        setLoading(false);
       }
     };
 
@@ -152,10 +157,8 @@ export default function AddFriends() {
         const result = await getMe();
         setMe(result?.me[0]);
         console.log("Current user:", result?.me[0]);
-        setLoading(false);
       } catch (error) {
         console.error("Users API error:", error.message);
-        setLoading(false);
       }
     };
 
@@ -164,10 +167,8 @@ export default function AddFriends() {
         const result = await getFriends();
         setFriendsList(result?.friends ?? []);
         console.log("Friends list:", result?.friends);
-        setLoading(false);
       } catch (error) {
         console.error("Friends API error:", error.message);
-        setLoading(false);
       }
     };
 
@@ -176,10 +177,8 @@ export default function AddFriends() {
         const result = await getIncomingFriendRequests();
         setIncomingFriendRequests(result?.requests ?? []);
         console.log("Incoming friend requests:", result?.requests);
-        setLoading(false);
       } catch (error) {
         console.error("Friends API error:", error.message);
-        setLoading(false);
       }
     };
 
@@ -188,10 +187,8 @@ export default function AddFriends() {
         const result = await getSentFriendRequests();
         setSentFriendRequests(result?.requests ?? []);
         console.log("Sent friend requests:", result?.requests);
-        setLoading(false);
       } catch (error) {
         console.error("Friends API error:", error.message);
-        setLoading(false);
       }
     };
 
@@ -200,7 +197,19 @@ export default function AddFriends() {
     loadFriends();
     loadSentFriendRequests();
     loadIncomingFriendRequests();
-  }, [token, tokensLoaded]);
+  }, [token, tokensLoaded, requireRefresh]);
+
+  useEffect(() => {
+    enrichUserList();
+    setRequireRefresh(false);
+  }, [
+    users,
+    friendsList,
+    sentFriendsRequests,
+    incomingFriendRequests,
+    me,
+    requireRefresh,
+  ]);
 
   const AddButton = ({ friend_status, id }) => {
     if (friend_status == "none" || !friend_status) {
@@ -213,6 +222,7 @@ export default function AddFriends() {
           ]}
           onPress={() => {
             sendFriendRequest(id);
+            setRequireRefresh(true);
           }}
         >
           <MaterialIcons name="person-add-alt-1" size={24} color={text} />
@@ -228,6 +238,7 @@ export default function AddFriends() {
             { backgroundColor: primary, borderColor: secondary },
           ]}
           onPress={() => {
+            // ADD CANCEL REQUEST ROUTE
             console.log("Cancel");
           }}
         >
@@ -245,7 +256,15 @@ export default function AddFriends() {
               { backgroundColor: "#EAFFE6", borderColor: "#21CC00" },
             ]}
             onPress={() => {
-              respondToFriendRequest(id, "accepted");
+              if (screen == "search") {
+                const request = incomingFriendRequests.filter((request) => {
+                  return (
+                    request.receiver_id === me.id && request.sender_id === id
+                  );
+                });
+                respondToFriendRequest(request[0].id, "accepted");
+              } else respondToFriendRequest(id, "accepted");
+              setRequireRefresh(true);
             }}
           >
             <FontAwesome name="check" size={24} color="#21CC00" />
@@ -298,12 +317,28 @@ export default function AddFriends() {
                 { label: "Search", value: "search" },
                 { label: "Friends Requests", value: "requests" },
               ]}
-              size={"small"}
+              size={"medium"}
               theme={theme}
               handleClick={(screen) => {
                 setScreen(screen);
               }}
             />
+            <Pressable
+              style={{ padding: 20, width: "100%", backgroundColor: tertiary }}
+              onPress={() => {
+                if (Platform.OS === "android") {
+                  ToastAndroid.showWithGravity(
+                    "Pika!",
+                    ToastAndroid.LONG,
+                    ToastAndroid.BOTTOM,
+                  );
+                } else {
+                  Alert.alert("Pika!", "Pika pika pika pikachu");
+                }
+              }}
+            >
+              <Text style={{ color: text }}>Toast me!</Text>
+            </Pressable>
           </View>
           <View style={style.searchBarContainer}>
             <TextInput
@@ -328,7 +363,7 @@ export default function AddFriends() {
             </Pressable>
           </View>
           <View style={style.listContainer}>
-            {loading && relationshipsLoaded ? (
+            {loading ? (
               <Text style={[{ color: text, textAlign: "center" }]}>
                 Loading...
               </Text>
@@ -373,10 +408,18 @@ export default function AddFriends() {
                           flex: 1,
                         }}
                       >
-                        <Image
-                          source={{ uri: item.profile_pic }}
-                          style={style.image}
-                        />
+                        {item.profile_pic !== "none" ? (
+                          <Image
+                            source={{ uri: item.profile_pic }}
+                            style={style.image}
+                          />
+                        ) : (
+                          <FontAwesome
+                            name="user-circle-o"
+                            size={50}
+                            color={text}
+                          />
+                        )}
 
                         <View style={{ flex: 1 }}>
                           <Text
@@ -424,6 +467,13 @@ export default function AddFriends() {
                         : "No incoming friend requests."}
                   </Text>
                 }
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  setRequireRefresh(true);
+                  enrichUserList();
+                  setRefreshing(false);
+                }}
               />
             )}
           </View>

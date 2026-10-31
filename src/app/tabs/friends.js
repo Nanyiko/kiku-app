@@ -14,6 +14,7 @@ import { getFriends } from "../../services/api";
 import getSelectedTheme from "../../../context/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -30,9 +31,22 @@ export default function Friends() {
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [storedTheme, setStoredTheme] = useState("default");
   const [friendsList, setFriendsList] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { primary, secondary, tertiary, text } = theme;
   const { width } = Dimensions.get("screen");
+
+  const loadFriends = async () => {
+    try {
+      const result = await getFriends();
+      setFriendsList(result);
+      console.log("Friends API result:", result?.friends);
+      setLoading(false);
+    } catch (error) {
+      console.error("Friends API error:", error.message);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,18 +85,6 @@ export default function Friends() {
     if (!tokensLoaded || !token) {
       return;
     }
-
-    const loadFriends = async () => {
-      try {
-        const result = await getFriends();
-        setFriendsList(result);
-        console.log("Friends API result:", result?.friends);
-        setLoading(false);
-      } catch (error) {
-        console.error("Friends API error:", error.message);
-        setLoading(false);
-      }
-    };
 
     loadFriends();
   }, [token, tokensLoaded]);
@@ -124,11 +126,25 @@ export default function Friends() {
               data={friendsList?.friends}
               renderItem={({ item }) => {
                 return (
-                  <Pressable key={item?.id} style={style.item}>
-                    <Image
-                      source={{ uri: item?.profile_pic }}
-                      style={style.profilePic}
-                    />
+                  <Pressable
+                    key={item?.id}
+                    style={style.item}
+                    onPress={() => {
+                      console.log(item?.profile_pic);
+                    }}
+                  >
+                    {item?.profile_pic != "none" ? (
+                      <Image
+                        source={{ uri: item.profile_pic }}
+                        style={style.image}
+                      />
+                    ) : (
+                      <FontAwesome
+                        name="user-circle-o"
+                        size={50}
+                        color={text}
+                      />
+                    )}
                     <View>
                       <Text
                         style={[
@@ -150,6 +166,12 @@ export default function Friends() {
               }}
               ListEmptyComponent={() => {
                 return <Text style={{ color: text }}>You have no friends</Text>;
+              }}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadFriends();
+                setRefreshing(false);
               }}
             />
           )}
@@ -196,6 +218,11 @@ const style = StyleSheet.create({
     fontWeight: "semibold",
   },
   profilePic: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  image: {
     width: 50,
     height: 50,
     borderRadius: 25,

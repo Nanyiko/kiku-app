@@ -1,7 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Dimensions, FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Track from "../../../components/Track";
 import fetchData from "../../../context/fetchData";
 import getSelectedTheme from "../../../context/theme";
@@ -23,6 +30,8 @@ export default function Recents() {
   const [recents, setRecents] = useState([]);
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [storedTheme, setStoredTheme] = useState("default");
+  const [refreshing, setRefreshing] = useState(false);
+  const [scrollToTop, setScrollToTop] = useState(false);
 
   const listRef = useRef(null);
 
@@ -64,7 +73,6 @@ export default function Recents() {
   }, []);
 
   async function getData() {
-    setLoading(true);
     fetchData(
       token,
       refreshToken,
@@ -88,9 +96,35 @@ export default function Recents() {
     );
   }
 
+  async function refreshData() {
+    fetchData(
+      token,
+      refreshToken,
+      setToken,
+      setRefreshToken,
+      "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+      async (data) => {
+        setRecents(() => {
+          const recentItems = data?.items ?? [];
+          return [...recentItems];
+        });
+        console.log("Recent data fetched");
+        setLoading(false);
+        try {
+          const jsonValue = JSON.stringify(data);
+          await AsyncStorage.setItem("recents", jsonValue);
+        } catch (e) {
+          console.error("Error saving recent data", e);
+        }
+      },
+    );
+  }
+
   useEffect(() => {
+    if (!tokensLoaded) return;
+    setLoading(true);
     getData();
-  }, [token, tokensLoaded, refreshToken]);
+  }, [token, tokensLoaded]);
 
   return (
     <LinearGradient
@@ -100,9 +134,21 @@ export default function Recents() {
       end={{ x: 0, y: 0.5 }}
     >
       {loading ? (
-        <Text style={[{ color: text }]}>Loading...</Text>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={[{ color: text }]}>Loading...</Text>
+        </View>
       ) : (
         <View style={{ alignItems: "center" }}>
+          <Pressable
+            style={{ padding: 20 }}
+            onPress={() => {
+              console.log(recents);
+            }}
+          >
+            <Text>Huh</Text>
+          </Pressable>
           <FlatList
             data={recents ?? []}
             renderItem={({ item }) => <Track song={item} theme={theme} />}
@@ -115,6 +161,25 @@ export default function Recents() {
             decelerationRate="fast"
             disableIntervalMomentum
             ref={listRef}
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              refreshData();
+              setRefreshing(false);
+            }}
+            ListEmptyComponent={() => {
+              return (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text>No recent activity</Text>
+                </View>
+              );
+            }}
           />
         </View>
       )}

@@ -195,6 +195,8 @@ export default function Stats() {
           <Text style={{ color: text }}>Loading...</Text>
         ) : (
           <FlatList
+            style={style.list}
+            contentContainerStyle={style.listContent}
             data={
               searchInput === ""
                 ? (data?.items ?? [])
@@ -281,5 +283,12 @@ const style = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     width: "100%",
+  },
+  list: {
+    width: "100%",
+  },
+  listContent: {
+    gap: 12.5,
+    paddingHorizontal: 10,
   },
 });
