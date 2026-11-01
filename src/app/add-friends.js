@@ -222,6 +222,12 @@ export default function AddFriends() {
           ]}
           onPress={() => {
             sendFriendRequest(id);
+            const message = `Friend request sent`;
+            if (Platform.OS === "android") {
+              ToastAndroid.showWithGravity(message, ToastAndroid.LONG);
+            } else if (Platform.OS === "ios") {
+              Alert.alert("Info", message);
+            }
             setRequireRefresh(true);
           }}
         >
@@ -264,6 +270,16 @@ export default function AddFriends() {
                 });
                 respondToFriendRequest(request[0].id, "accepted");
               } else respondToFriendRequest(id, "accepted");
+              const message = `Friend request accepted`;
+              if (Platform.OS === "android") {
+                ToastAndroid.showWithGravity(
+                  message,
+                  ToastAndroid.LONG,
+                  ToastAndroid.BOTTOM,
+                );
+              } else if (Platform.OS === "ios") {
+                Alert.alert("Info", message);
+              }
               setRequireRefresh(true);
             }}
           >
@@ -323,22 +339,6 @@ export default function AddFriends() {
                 setScreen(screen);
               }}
             />
-            <Pressable
-              style={{ padding: 20, width: "100%", backgroundColor: tertiary }}
-              onPress={() => {
-                if (Platform.OS === "android") {
-                  ToastAndroid.showWithGravity(
-                    "Pika!",
-                    ToastAndroid.LONG,
-                    ToastAndroid.BOTTOM,
-                  );
-                } else {
-                  Alert.alert("Pika!", "Pika pika pika pikachu");
-                }
-              }}
-            >
-              <Text style={{ color: text }}>Toast me!</Text>
-            </Pressable>
           </View>
           <View style={style.searchBarContainer}>
             <TextInput

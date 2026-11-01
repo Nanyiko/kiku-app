@@ -141,14 +141,6 @@ export default function Recents() {
         </View>
       ) : (
         <View style={{ alignItems: "center" }}>
-          <Pressable
-            style={{ padding: 20 }}
-            onPress={() => {
-              console.log(recents);
-            }}
-          >
-            <Text>Huh</Text>
-          </Pressable>
           <FlatList
             data={recents ?? []}
             renderItem={({ item }) => <Track song={item} theme={theme} />}

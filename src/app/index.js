@@ -19,7 +19,7 @@ export default function Index() {
       const theme = await AsyncStorage.getItem("theme");
       if (access_token && theme) {
         router.replace("continue");
-      } else if (!theme) {
+      } else if (access_token && !theme) {
         router.replace("/theme-select");
       } else return;
     }
