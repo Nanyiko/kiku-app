@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { registerSpotifyTokens } from "../src/services/api";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -57,6 +58,19 @@ const fetchData = async (
       setToken(newAccessToken);
       setRefreshToken(newRefreshToken);
 
+      try {
+        const kikuUser = await registerSpotifyTokens({
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          expiresIn: refreshData.expires_in,
+          scope: refreshData.scope || "",
+        });
+
+        console.log("Kiku account registered:", kikuUser.id);
+      } catch (error) {
+        console.error("Token persistence failed:", error.message);
+      }
+
       console.warn("Fetching data");
       const retryResponse = await fetch(endpoint, {
         headers: {
@@ -72,7 +86,7 @@ const fetchData = async (
     console.warn("Fetching data");
     afterFetch(data);
   } catch (error) {
-    console.error("Failed to fetch profile:", error);
+    console.error("Failed to fetch data:", error);
   }
 };
 

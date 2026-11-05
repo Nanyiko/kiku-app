@@ -12,6 +12,7 @@ import {
 import Track from "../../../components/Track";
 import fetchData from "../../../context/fetchData";
 import getSelectedTheme from "../../../context/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -29,7 +30,6 @@ export default function Recents() {
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState([]);
   const [tokensLoaded, setTokensLoaded] = useState(false);
-  const [storedTheme, setStoredTheme] = useState("default");
   const [refreshing, setRefreshing] = useState(false);
   const [scrollToTop, setScrollToTop] = useState(false);
 
@@ -38,12 +38,10 @@ export default function Recents() {
   const { primary, secondary, tertiary, text } = theme;
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadTheme = async () => {
       try {
         const selectedTheme = await getSelectedTheme();
         setTheme(selectedTheme);
-        const savedTheme = await AsyncStorage.getItem("theme");
-        setStoredTheme(savedTheme ?? "default");
         setLoading(false);
       } catch (error) {
         console.warn("Failed to load recents data:", error);
@@ -51,7 +49,7 @@ export default function Recents() {
       }
     };
 
-    loadData();
+    loadTheme();
   }, []);
 
   useEffect(() => {
@@ -80,9 +78,9 @@ export default function Recents() {
       setRefreshToken,
       "https://api.spotify.com/v1/me/player/recently-played?limit=50",
       async (data) => {
-        setRecents((prev) => {
+        setRecents(() => {
           const recentItems = data?.items ?? [];
-          return [...prev, ...recentItems];
+          return [...recentItems];
         });
         console.log("Recent data fetched");
         setLoading(false);
@@ -173,6 +171,20 @@ export default function Recents() {
               );
             }}
           />
+          <Pressable
+            style={[style.scrollToTopButton, { backgroundColor: secondary }]}
+            onPress={() => {
+              listRef?.current?.scrollToIndex({
+                index: 0,
+                animated: true,
+              });
+            }}
+          >
+            <Text style={[style.scrollToTopButtonText, { color: text }]}>
+              Scroll to top
+            </Text>
+            <Octicons name="move-to-top" size={24} color={text} />
+          </Pressable>
         </View>
       )}
     </LinearGradient>
@@ -207,5 +219,18 @@ const style = StyleSheet.create({
     zIndex: 100,
     flexDirection: "row",
     gap: 5,
+  },
+  scrollToTopButton: {
+    position: "absolute",
+    bottom: "1%",
+    padding: 7.5,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+    borderRadius: 30,
+  },
+  scrollToTopButtonText: {
+    fontWeight: "bold",
   },
 });

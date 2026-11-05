@@ -100,7 +100,7 @@ export default function Onboarding() {
           await AsyncStorage.setItem("username", username);
           await AsyncStorage.setItem(
             "profile_pic_uri",
-            retryData?.images[0]?.url,
+            retryData?.images[0]?.url || "none",
           );
           return;
         }
@@ -134,7 +134,7 @@ export default function Onboarding() {
       ) : (
         <>
           <View style={style.headerContainer}>
-            {profileImage === "none" ? (
+            {profileImage !== "none" ? (
               <Image source={{ uri: profileImage }} style={style.profilePic} />
             ) : (
               <FontAwesome name="user-circle-o" size={300} color="#FFFFFF" />
@@ -149,7 +149,7 @@ export default function Onboarding() {
           <Pressable
             style={style.button}
             onPress={() => {
-              router.replace("/theme-select");
+              router.replace("/theme-select?context=onboarding");
               AsyncStorage.setItem("username", username);
               AsyncStorage.setItem("profile_pic_uri", profileImage);
             }}

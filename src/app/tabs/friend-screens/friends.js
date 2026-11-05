@@ -10,11 +10,12 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { getFriends } from "../../services/api";
-import getSelectedTheme from "../../../context/theme";
+import { getFriends, getAccessToken } from "../../../services/api";
+import getSelectedTheme from "../../../../context/theme";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useRouter } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import fetchFriendData from "../../../../context/fetchFriendData";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -29,9 +30,9 @@ export default function Friends() {
   const [theme, setTheme] = useState(defaultTheme);
   const [loading, setLoading] = useState(true);
   const [tokensLoaded, setTokensLoaded] = useState(false);
-  const [storedTheme, setStoredTheme] = useState("default");
   const [friendsList, setFriendsList] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [enrichedFriends, setEnrichedFriends] = useState([]);
 
   const { primary, secondary, tertiary, text } = theme;
   const { width } = Dimensions.get("screen");
@@ -47,20 +48,81 @@ export default function Friends() {
       setLoading(false);
     }
   };
+  const loadFriendData = async () => {
+    try {
+      for (const user of friendsList?.friends) {
+        const token = await getAccessToken(user?.id);
+        fetchFriendData(
+          token.access_token,
+          token.refresh_token,
+          "https://api.spotify.com/v1/me/player",
+          async (data) => {
+            if ("error" in data && data.error === 204) {
+              fetchFriendData(
+                token.access_token,
+                token.refresh_token,
+                "https://api.spotify.com/v1/me/player/recently-played?limit=1",
+                async (data) => {
+                  const artistNames =
+                    data?.items[0]?.track?.artists
+                      ?.map((artist) => artist?.name)
+                      .filter(Boolean)
+                      .join(", ") ?? "Unknown artist";
+                  setEnrichedFriends((prev) => {
+                    return [
+                      ...prev.filter((friend) => friend.id !== user.id),
+                      {
+                        ...user,
+                        access_token: token.access_token,
+                        refresh_token: token.refresh_token,
+                        is_playing: false,
+                        track: data?.items[0]?.track?.name,
+                        artists: artistNames,
+                      },
+                    ];
+                  });
+                },
+              );
+              return;
+            } else {
+              const artistNames =
+                data?.item?.artists
+                  ?.map((artist) => artist?.name)
+                  .filter(Boolean)
+                  .join(", ") ?? "Unknown artist";
+              setEnrichedFriends((prev) => {
+                return [
+                  ...prev.filter((friend) => friend.id !== user.id),
+                  {
+                    ...user,
+                    access_token: token.access_token,
+                    refresh_token: token.refresh_token,
+                    is_playing: Boolean(data?.is_playing),
+                    track: data?.item?.name,
+                    artists: artistNames,
+                  },
+                ];
+              });
+            }
+          },
+        );
+      }
+    } catch (error) {
+      console.error("Failed to load access tokens:", error);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadTheme = async () => {
       try {
         const selectedTheme = await getSelectedTheme();
         setTheme(selectedTheme);
-        const savedTheme = await AsyncStorage.getItem("theme");
-        setStoredTheme(savedTheme ?? "default");
       } catch (error) {
         console.warn("Failed to load recents data:", error);
       }
     };
 
-    loadData();
+    loadTheme();
   }, []);
 
   useEffect(() => {
@@ -88,6 +150,12 @@ export default function Friends() {
 
     loadFriends();
   }, [token, tokensLoaded]);
+
+  useEffect(() => {
+    if (!friendsList) return;
+
+    loadFriendData();
+  }, [friendsList]);
 
   const router = useRouter();
   return (
@@ -123,28 +191,41 @@ export default function Friends() {
             </Text>
           ) : (
             <FlatList
-              data={friendsList?.friends}
+              data={enrichedFriends}
               renderItem={({ item }) => {
                 return (
                   <Pressable
                     key={item?.id}
                     style={style.item}
-                    onPress={() => {
-                      console.log(item?.profile_pic);
+                    onPress={async () => {
+                      const token = await getAccessToken(item?.id);
+                      console.log(JSON.stringify(token));
+                      router.navigate(
+                        `/tabs/friend-screens/friend-profile?token=${JSON.stringify(token)}`,
+                      );
                     }}
                   >
-                    {item?.profile_pic != "none" ? (
-                      <Image
-                        source={{ uri: item.profile_pic }}
-                        style={style.image}
-                      />
-                    ) : (
-                      <FontAwesome
-                        name="user-circle-o"
-                        size={50}
-                        color={text}
-                      />
-                    )}
+                    <View
+                      style={{
+                        borderWidth: item?.is_playing ? 5 : 0,
+                        margin: item?.is_playing ? 0 : 5,
+                        borderRadius: 50,
+                        borderColor: tertiary,
+                      }}
+                    >
+                      {item?.profile_pic != "none" ? (
+                        <Image
+                          source={{ uri: item.profile_pic }}
+                          style={style.image}
+                        />
+                      ) : (
+                        <FontAwesome
+                          name="user-circle-o"
+                          size={50}
+                          color={text}
+                        />
+                      )}
+                    </View>
                     <View>
                       <Text
                         style={[
@@ -153,8 +234,14 @@ export default function Friends() {
                       >
                         {item?.display_name}
                       </Text>
-                      <Text style={{ color: text, fontWeight: "light" }}>
-                        Random song - Random Artist
+                      <Text style={{ color: text, marginRight: 10 }}>
+                        <Text style={{ fontWeight: "bold" }}>
+                          {item?.track}
+                        </Text>{" "}
+                        -{" "}
+                        <Text style={{ fontWeight: "200" }}>
+                          {item?.artists}
+                        </Text>
                       </Text>
                     </View>
                   </Pressable>
@@ -171,6 +258,7 @@ export default function Friends() {
               onRefresh={() => {
                 setRefreshing(true);
                 loadFriends();
+                loadFriendData();
                 setRefreshing(false);
               }}
             />
@@ -200,7 +288,7 @@ const style = StyleSheet.create({
   item: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 20,
+    gap: 10,
     padding: 10,
     width: "90%",
   },

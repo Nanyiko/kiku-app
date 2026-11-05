@@ -20,7 +20,7 @@ export default function Index() {
       if (access_token && theme) {
         router.replace("continue");
       } else if (access_token && !theme) {
-        router.replace("/theme-select");
+        router.replace("/theme-select?context=onboarding");
       } else return;
     }
     skipAuth();
@@ -43,6 +43,7 @@ export default function Index() {
         "user-read-private",
         "user-read-recently-played",
         "user-top-read",
+        "user-read-playback-state",
       ],
       usePKCE: true,
       redirectUri,

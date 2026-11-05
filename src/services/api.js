@@ -68,6 +68,10 @@ export function respondToFriendRequest(requestId, status) {
 }
 [];
 
+export function getAccessToken(userId) {
+  return apiRequest(`/api/users/get-tokens/${userId}`);
+}
+
 export async function registerSpotifyTokens(tokenResponse) {
   const { accessToken, refreshToken, expiresIn, scope } = tokenResponse;
 

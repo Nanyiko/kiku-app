@@ -34,6 +34,7 @@ export default function Continue() {
         "user-read-private",
         "user-read-recently-played",
         "user-top-read",
+        "user-read-playback-state",
       ],
       usePKCE: true,
       redirectUri,

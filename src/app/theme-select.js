@@ -1,11 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 
 export default function ThemeSelect() {
   const router = useRouter();
+
+  const { context } = useLocalSearchParams();
+  console.log("context:", context);
 
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [theme, setTheme] = useState("Soft Purple");
@@ -97,9 +100,13 @@ export default function ThemeSelect() {
           { backgroundColor: theme.primary, borderColor: theme.secondary },
         ]}
         onPress={() => {
-          router.replace("/tabs");
+          if (context === "onboarding") {
+            router.replace("/tabs");
+            AsyncStorage.setItem("authenticated", "true");
+          } else if (context === "change") {
+            router.replace("/tabs/profile");
+          }
           AsyncStorage.setItem("theme", `${selectedTheme}`);
-          AsyncStorage.setItem("authenticated", "true");
         }}
       >
         <Text style={[style.buttonText, { color: theme.text }]}>Next</Text>
