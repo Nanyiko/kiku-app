@@ -1,3 +1,3 @@
-let myJ = { name: "titus", age: 26 };
-myJ.age = 40;
-console.log(myJ);
+let myList = [1, 2, 3, 4, 5];
+
+myList.indexOf(3);

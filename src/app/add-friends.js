@@ -340,28 +340,30 @@ export default function AddFriends() {
               }}
             />
           </View>
-          <View style={style.searchBarContainer}>
-            <TextInput
-              placeholder="Search..."
-              placeholderTextColor={text}
-              value={searchInput}
-              onChangeText={setSearchInput}
-              style={[
-                style.searchBar,
-                {
-                  color: text,
-                  backgroundColor: primary,
-                },
-              ]}
-            />
-            <Pressable
-              onPress={() => {
-                setSearchInput("");
-              }}
-            >
-              <MaterialIcons name="cancel" size={30} color={text} />
-            </Pressable>
-          </View>
+          {screen === "search" && (
+            <View style={style.searchBarContainer}>
+              <TextInput
+                placeholder="Search..."
+                placeholderTextColor={text}
+                value={searchInput}
+                onChangeText={setSearchInput}
+                style={[
+                  style.searchBar,
+                  {
+                    color: text,
+                    backgroundColor: primary,
+                  },
+                ]}
+              />
+              <Pressable
+                onPress={() => {
+                  setSearchInput("");
+                }}
+              >
+                <MaterialIcons name="cancel" size={30} color={text} />
+              </Pressable>
+            </View>
+          )}
           <View style={style.listContainer}>
             {loading ? (
               <Text style={[{ color: text, textAlign: "center" }]}>

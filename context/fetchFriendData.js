@@ -79,10 +79,14 @@ const fetchFriendData = async (
         afterFetch({ error: 204 });
         return;
       }
+      const retryData = await retryResponse.json();
+      afterFetch(retryData);
+      return;
     }
 
     console.warn("Fetching data");
     afterFetch(data);
+    return;
   } catch (error) {
     console.error("Failed to fetch data:", error);
   }

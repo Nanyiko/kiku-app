@@ -31,7 +31,9 @@ export default function Recents() {
   const [recents, setRecents] = useState([]);
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [scrollToTop, setScrollToTop] = useState(false);
+  const [friendsList, setFriendsList] = useState(null);
+  const [screen, setScreen] = useState("personal");
+  const [sharedFeed, setSharedFeed] = useState([]);
 
   const listRef = useRef(null);
 

@@ -1,4 +1,12 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Linking,
+} from "react-native";
+import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 
 export default function Artist({ item, theme, ranking, type }) {
   const { primary, secondary, text } = theme;
@@ -11,6 +19,8 @@ export default function Artist({ item, theme, ranking, type }) {
       : null;
   const imageUrl =
     type == "Tracks" ? item?.album?.images[0]?.url : item?.images[0]?.url;
+  const link = item?.external_urls?.spotify;
+  console.log(link);
   return (
     <View
       key={item?.id}
@@ -25,9 +35,17 @@ export default function Artist({ item, theme, ranking, type }) {
       <View style={styles.details}>
         <Text style={[{ color: text }, styles.artist]}>{item?.name}</Text>
         {type === "Tracks" && (
-          <Text style={[{ color: text }]}>{artistNames}</Text>
+          <Text style={{ color: text, fontWeight: "200" }}>{artistNames}</Text>
         )}
       </View>
+      <Pressable
+        style={{ padding: 10 }}
+        onPress={async () => {
+          await Linking.openURL(link);
+        }}
+      >
+        <SimpleLineIcons name="arrow-right" size={24} color={text} />
+      </Pressable>
     </View>
   );
 }
@@ -49,6 +67,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "semibold",
     flexShrink: 1,
+    fontWeight: "bold",
   },
   ranking: {
     fontSize: 26,
