@@ -11,8 +11,11 @@ import {
 } from "react-native";
 import Track from "../../../components/Track";
 import fetchData from "../../../context/fetchData";
+import fetchFriendData from "../../../context/fetchFriendData";
 import getSelectedTheme from "../../../context/theme";
 import Octicons from "@expo/vector-icons/Octicons";
+import { getFriends, getMe, getAccessToken } from "../../services/api";
+import SegmentedControl from "../../../components/SegmentedControl";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -31,6 +34,7 @@ export default function Recents() {
   const [recents, setRecents] = useState([]);
   const [tokensLoaded, setTokensLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [me, setMe] = useState(null);
   const [friendsList, setFriendsList] = useState(null);
   const [screen, setScreen] = useState("personal");
   const [sharedFeed, setSharedFeed] = useState([]);
@@ -38,6 +42,87 @@ export default function Recents() {
   const listRef = useRef(null);
 
   const { primary, secondary, tertiary, text } = theme;
+
+  const loadFriends = async () => {
+    try {
+      const result = await getFriends();
+      setFriendsList(result);
+      console.log("Friends API result:", result?.friends);
+    } catch (error) {
+      console.error("Friends API error:", error.message);
+    }
+  };
+
+  const loadMe = async () => {
+    try {
+      const result = await getMe();
+      setMe(result?.me[0]);
+      console.log("Current user:", result?.me[0]);
+    } catch (error) {
+      console.error("Users API error:", error.message);
+    }
+  };
+
+  const loadSharedFeed = async () => {
+    setSharedFeed([]);
+    fetchData(
+      token,
+      refreshToken,
+      setToken,
+      setRefreshToken,
+      "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+      async (data) => {
+        setSharedFeed((prev) => {
+          const recentItems = data?.items ?? [];
+          const username = me?.display_name;
+          const profilePic = me?.profile_pic;
+
+          const enrichedItems = recentItems.map((item) => ({
+            ...item,
+            username,
+            profile_pic: profilePic,
+          }));
+
+          return [...prev, ...enrichedItems];
+        });
+        console.log("Shared feed fetched");
+        setLoading(false);
+      },
+    );
+    for (let user of friendsList?.friends) {
+      const token = await getAccessToken(user?.id);
+
+      fetchFriendData(
+        token?.access_token,
+        token?.refresh_token,
+        "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+        async (data) => {
+          setSharedFeed((prev) => {
+            const recentItems = data?.items ?? [];
+            const username = user?.display_name;
+            const profilePic = user?.profile_pic;
+
+            const enrichedItems = recentItems.map((item) => ({
+              ...item,
+              username,
+              profile_pic: profilePic,
+            }));
+
+            return [...prev, ...enrichedItems];
+          });
+        },
+      );
+    }
+
+    setSharedFeed((prev) => {
+      return prev.sort((a, b) => {
+        const timestampA = new Date(a?.played_at).getTime();
+        const timestampB = new Date(b?.played_at).getTime();
+
+        return timestampB - timestampA;
+      });
+    });
+  };
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -124,7 +209,14 @@ export default function Recents() {
     if (!tokensLoaded) return;
     setLoading(true);
     getData();
+    loadFriends();
+    loadMe();
   }, [token, tokensLoaded]);
+
+  useEffect(() => {
+    if (!friendsList) return;
+    loadSharedFeed();
+  }, [token, tokensLoaded, friendsList]);
 
   return (
     <LinearGradient
@@ -141,8 +233,29 @@ export default function Recents() {
         </View>
       ) : (
         <View style={{ alignItems: "center" }}>
+          <View
+            style={{
+              position: "absolute",
+              top: "5%",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 3000,
+            }}
+          >
+            <SegmentedControl
+              items={[
+                { label: "Personal", value: "personal" },
+                { label: "Shared Feed", value: "shared" },
+              ]}
+              size={"medium"}
+              theme={theme}
+              handleClick={(screen) => {
+                setScreen(screen);
+              }}
+            />
+          </View>
           <FlatList
-            data={recents ?? []}
+            data={screen === "personal" ? recents : sharedFeed}
             renderItem={({ item }) => <Track song={item} theme={theme} />}
             keyExtractor={(item) => item?.played_at}
             horizontal={false}
