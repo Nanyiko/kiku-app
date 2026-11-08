@@ -23,10 +23,6 @@ export default function RootLayout() {
         name="continue"
         options={{ title: "Continue", headerShown: false }}
       />
-      <Stack.Screen
-        name="add-friends"
-        options={{ title: "Add Friends", headerShown: false }}
-      />
     </Stack>
   );
 }

@@ -2,7 +2,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, Alert } from "react-native";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -94,6 +94,14 @@ export default function Onboarding() {
           });
 
           const retryData = await retryResponse.json();
+          if ("error" in retryData && retryData.error?.status === 429) {
+            const retryAfter = retryResponse.headers.get("Retry-After");
+            Alert.alert(
+              "Error",
+              `${retryData?.error?.message}\nRetry after ${retryAfter} seconds`,
+            );
+            return;
+          }
 
           setProfile(retryData ?? null);
           setUsername(retryData?.display_name ?? "");
@@ -101,6 +109,13 @@ export default function Onboarding() {
           await AsyncStorage.setItem(
             "profile_pic_uri",
             retryData?.images[0]?.url || "none",
+          );
+          return;
+        } else if ("error" in data && data.error?.status === 429) {
+          const retryAfter = response.headers.get("Retry-After");
+          Alert.alert(
+            "Error",
+            `${data?.error?.message}\nRetry after ${retryAfter} seconds`,
           );
           return;
         }

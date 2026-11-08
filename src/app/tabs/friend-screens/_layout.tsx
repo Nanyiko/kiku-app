@@ -51,6 +51,11 @@ export default function TabsLayout() {
             name="friend-profile"
             options={{ title: "Friends Profile", headerShown: false }}
           />
+
+          <Stack.Screen
+            name="add-friends"
+            options={{ title: "Add Friends", headerShown: false }}
+          />
         </Stack>
       )}
     </SafeAreaView>

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { registerSpotifyTokens } from "../src/services/api";
+import { Alert } from "react-native";
 
 const CLIENT_ID = "6c623457efa94755aae18971b7ee0afb";
 
@@ -78,9 +79,28 @@ const fetchFriendData = async (
       if (retryResponse.status === 204) {
         afterFetch({ error: 204 });
         return;
+      } else if ("error" in data && data.error?.status === 429) {
+        Alert.alert("Error", data?.error?.message);
+        afterFetch({ error: 429 });
+        return;
       }
       const retryData = await retryResponse.json();
+      if ("error" in retryData && retryData.error?.status === 429) {
+        const retryAfter = retryResponse.headers.get("Retry-After");
+        Alert.alert(
+          "Error",
+          `${retryData?.error?.message}\nRetry after ${retryAfter} seconds`,
+        );
+        return;
+      }
       afterFetch(retryData);
+      return;
+    } else if ("error" in data && data.error?.status === 429) {
+      const retryAfter = response.headers.get("Retry-After");
+      Alert.alert(
+        "Error",
+        `${data?.error?.message}\nRetry after ${retryAfter} seconds`,
+      );
       return;
     }
 

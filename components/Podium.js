@@ -31,7 +31,7 @@ export default function Podium({ data, theme, type }) {
                 zIndex: 3000,
                 width: 30,
                 height: 30,
-                backgroundColor: primary,
+                backgroundColor: secondary,
                 borderWidth: 3,
                 borderRadius: 15,
                 borderColor: secondary,

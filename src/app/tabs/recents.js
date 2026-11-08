@@ -113,15 +113,6 @@ export default function Recents() {
         },
       );
     }
-
-    setSharedFeed((prev) => {
-      return prev.sort((a, b) => {
-        const timestampA = new Date(a?.played_at).getTime();
-        const timestampB = new Date(b?.played_at).getTime();
-
-        return timestampB - timestampA;
-      });
-    });
   };
 
   useEffect(() => {
@@ -218,6 +209,17 @@ export default function Recents() {
     loadSharedFeed();
   }, [token, tokensLoaded, friendsList]);
 
+  useEffect(() => {
+    setSharedFeed((prev) => {
+      return prev.sort((a, b) => {
+        const timestampA = new Date(a?.played_at).getTime();
+        const timestampB = new Date(b?.played_at).getTime();
+
+        return timestampB - timestampA;
+      });
+    });
+  }, [sharedFeed]);
+
   return (
     <LinearGradient
       style={style.container}
@@ -256,7 +258,9 @@ export default function Recents() {
           </View>
           <FlatList
             data={screen === "personal" ? recents : sharedFeed}
-            renderItem={({ item }) => <Track song={item} theme={theme} />}
+            renderItem={({ item }) => (
+              <Track song={item} theme={theme} screen={screen} />
+            )}
             keyExtractor={(item) => item?.played_at}
             horizontal={false}
             pagingEnabled
@@ -269,7 +273,15 @@ export default function Recents() {
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true);
-              refreshData();
+              if (screen === "personal") {
+                refreshData();
+              } else if (screen === "shared") {
+                loadSharedFeed();
+              }
+              listRef?.current?.scrollToIndex({
+                index: 0,
+                animated: true,
+              });
               setRefreshing(false);
             }}
             ListEmptyComponent={() => {
@@ -281,7 +293,7 @@ export default function Recents() {
                     alignItems: "center",
                   }}
                 >
-                  <Text>No recent activity</Text>
+                  <Text style={{ color: text }}>No recent activity</Text>
                 </View>
               );
             }}

@@ -171,7 +171,7 @@ export default function Friends() {
           <Pressable
             style={[style.addButton, { backgroundColor: primary }]}
             onPress={() => {
-              router.navigate("/add-friends");
+              router.navigate("/tabs/friend-screens/add-friends");
             }}
           >
             <AntDesign name="usergroup-add" size={24} color={text} />

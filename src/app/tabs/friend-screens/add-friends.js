@@ -10,7 +10,7 @@ import {
   ToastAndroid,
   Alert,
 } from "react-native";
-import getSelectedTheme from "../../context/theme";
+import getSelectedTheme from "../../../../context/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState, useEffect, useMemo } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -25,8 +25,9 @@ import {
   getSentFriendRequests,
   getIncomingFriendRequests,
   respondToFriendRequest,
-} from "../services/api";
-import SegmentedControl from "../../components/SegmentedControl";
+} from "../../../services/api";
+import SegmentedControl from "../../../../components/SegmentedControl";
+import { LinearGradient } from "expo-linear-gradient";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -239,17 +240,15 @@ export default function AddFriends() {
       return (
         <Pressable
           style={[
-            style.requestButton,
+            style.disabledButton,
             style.button,
             { backgroundColor: primary, borderColor: secondary },
           ]}
           onPress={() => {
-            // ADD CANCEL REQUEST ROUTE
             console.log("Cancel");
           }}
         >
-          <MaterialCommunityIcons name="cancel" size={24} color={text} />
-          <Text style={[style.buttonText, { color: text }]}>Cancel</Text>
+          <Text style={[style.buttonText, { color: text }]}>Request sent</Text>
         </Pressable>
       );
     } else if (friend_status == "request_received") {
@@ -321,7 +320,12 @@ export default function AddFriends() {
   };
 
   return (
-    <View style={[style.container, { backgroundColor: secondary }]}>
+    <LinearGradient
+      style={style.container}
+      colors={[secondary, primary]}
+      start={{ x: 0.5, y: 0.3 }}
+      end={{ x: 0, y: 0.5 }}
+    >
       <View style={style.header}>
         <Text style={[style.headerText, { color: text }]}>Add Friends</Text>
       </View>
@@ -481,7 +485,7 @@ export default function AddFriends() {
           </View>
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 

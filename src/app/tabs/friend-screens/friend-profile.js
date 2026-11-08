@@ -95,6 +95,7 @@ export default function FriendProfile() {
       async (data) => {
         if ("error" in data && data?.error === 204) {
           setPlayerActive(false);
+          setPlayer({ error: 204 });
         } else {
           setPlayer(data);
           setPlayerActive(data?.is_playing);
@@ -178,37 +179,41 @@ export default function FriendProfile() {
                   <View
                     style={{ justifyContent: "center", alignItems: "center" }}
                   >
-                    <View
-                      style={{
-                        width: "80%",
-                        borderWidth: playerActive && 5,
-                        margin: playerActive ? 10 : 15,
-                        borderRadius: 15,
-                        borderColor: tertiary,
-                        backgroundColor: secondary,
-                        padding: 20,
-                        alignItems: "center",
-                        flexDirection: "row",
-                        gap: 10,
-                      }}
-                    >
-                      <FontAwesome6
-                        name="record-vinyl"
-                        size={24}
-                        color="black"
-                      />
-                      <Text
+                    {!("error" in player) && player?.error !== 204 && (
+                      <View
                         style={{
-                          color: text,
-                          fontWeight: "bold",
+                          width: "80%",
+                          alignSelf: "center",
+                          justifyContent: "center",
+                          borderWidth: playerActive && 5,
+                          margin: playerActive ? 10 : 15,
+                          borderRadius: 15,
+                          borderColor: tertiary,
+                          backgroundColor: secondary,
+                          padding: 20,
+                          alignItems: "center",
+                          flexDirection: "row",
+                          gap: 10,
                         }}
                       >
-                        {player?.item?.name} -{" "}
-                        <Text style={{ fontWeight: "200" }}>
-                          {playerArtistNames}
+                        <FontAwesome6
+                          name="record-vinyl"
+                          size={24}
+                          color="black"
+                        />
+                        <Text
+                          style={{
+                            color: text,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {player?.item?.name} -{" "}
+                          <Text style={{ fontWeight: "200" }}>
+                            {playerArtistNames}
+                          </Text>
                         </Text>
-                      </Text>
-                    </View>
+                      </View>
+                    )}
                     {playerActive && (
                       <Text style={{ color: text, marginBottom: 10 }}>
                         Now playing on Spotify
@@ -234,40 +239,70 @@ export default function FriendProfile() {
               return (
                 <View
                   style={{
-                    margin: 10,
-                    marginLeft: 0,
-                    marginTop: 0,
-                    padding: 20,
+                    marginHorizontal: 10,
+                    marginVertical: 5,
+                    padding: 12,
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: 15,
-                    width: "100%",
+                    gap: 10,
+                    width: "auto",
                   }}
                   key={item?.played_at}
                 >
                   <Image
                     source={{ uri: item?.track?.album?.images[0]?.url }}
-                    style={{ width: 70, height: 70, borderRadius: 35 }}
+                    style={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: 35,
+                      flexShrink: 0,
+                    }}
                   />
-                  <View style={{ gap: 5 }}>
+
+                  <View
+                    style={{
+                      flex: 1,
+                      flexShrink: 1,
+                      minWidth: 0,
+                      gap: 5,
+                    }}
+                  >
                     <Text
-                      style={{ color: text, fontSize: 18, fontWeight: "bold" }}
+                      style={{
+                        color: text,
+                        fontSize: 18,
+                        fontWeight: "bold",
+                      }}
                     >
                       {item?.track?.name}
                     </Text>
-                    <Text style={{ color: text, fontWeight: "300" }}>
+
+                    <Text
+                      style={{
+                        color: text,
+                        fontWeight: "300",
+                      }}
+                    >
                       {artistNames}
                     </Text>
                   </View>
+
                   <View
                     style={{
                       backgroundColor: secondary,
                       paddingHorizontal: 15,
                       paddingVertical: 10,
                       borderRadius: 40,
+                      flexShrink: 0,
                     }}
                   >
-                    <Text style={{ color: text, fontWeight: "bold" }}>
+                    <Text
+                      style={{
+                        color: text,
+                        fontWeight: "bold",
+                        fontSize: 12,
+                      }}
+                    >
                       {moment(item?.played_at).fromNow()}
                     </Text>
                   </View>
