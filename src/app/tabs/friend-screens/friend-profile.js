@@ -166,7 +166,7 @@ export default function FriendProfile() {
                       <FontAwesome
                         name="user-circle-o"
                         size={300}
-                        color="#FFFFFF"
+                        color={text}
                       />
                     )}
                   </View>
@@ -199,7 +199,7 @@ export default function FriendProfile() {
                         <FontAwesome6
                           name="record-vinyl"
                           size={24}
-                          color="black"
+                          color={text}
                         />
                         <Text
                           style={{

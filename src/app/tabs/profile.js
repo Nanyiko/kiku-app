@@ -138,7 +138,7 @@ export default function Profile() {
           {profilePicUri !== "none" ? (
             <Image source={{ uri: profilePicUri }} style={styles.profilePic} />
           ) : (
-            <FontAwesome name="user-circle-o" size={300} color="#FFFFFF" />
+            <FontAwesome name="user-circle-o" size={300} color={text} />
           )}
           <Text style={[styles.displayName, { color: text }]}>{username}</Text>
           <View style={{ justifyContent: "center", alignItems: "center" }}>
@@ -159,7 +159,7 @@ export default function Profile() {
                   gap: 10,
                 }}
               >
-                <FontAwesome6 name="record-vinyl" size={24} color="black" />
+                <FontAwesome6 name="record-vinyl" size={24} color={text} />
                 <Text
                   style={{
                     color: text,
