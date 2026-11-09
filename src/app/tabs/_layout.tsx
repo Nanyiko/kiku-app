@@ -1,6 +1,7 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
@@ -17,18 +18,15 @@ const defaultTheme = {
 
 export default function TabsLayout() {
   const [theme, setTheme] = useState(defaultTheme);
-  const [storedTheme, setStoredTheme] = useState("default");
   const [loading, setLoading] = useState(true);
 
   const { primary, secondary, tertiary, text } = theme;
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadTheme = async () => {
       try {
         const selectedTheme = await getSelectedTheme();
         setTheme(selectedTheme);
-        const savedTheme = await AsyncStorage.getItem("theme");
-        setStoredTheme(savedTheme ?? "default");
         setLoading(false);
       } catch (error) {
         console.warn("Failed to load recents data:", error);
@@ -36,7 +34,7 @@ export default function TabsLayout() {
       }
     };
 
-    loadData();
+    loadTheme();
   }, []);
 
   return (
@@ -80,11 +78,20 @@ export default function TabsLayout() {
             }}
           />
           <Tabs.Screen
-            name="friends"
+            name="friend-screens"
             options={{
               title: "Friends",
               tabBarIcon: ({ color }) => (
                 <FontAwesome5 name="user-friends" size={24} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: "Profile",
+              tabBarIcon: ({ color }) => (
+                <FontAwesome name="user" size={24} color={color} />
               ),
             }}
           />

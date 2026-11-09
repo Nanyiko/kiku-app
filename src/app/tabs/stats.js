@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   FlatList,
   Pressable,
@@ -14,6 +14,7 @@ import Artist from "../../../components/Artist";
 import SegmentedControl from "../../../components/SegmentedControl";
 import fetchData from "../../../context/fetchData";
 import getSelectedTheme from "../../../context/theme";
+import Octicons from "@expo/vector-icons/Octicons";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -25,7 +26,6 @@ const defaultTheme = {
 
 export default function Stats() {
   const [theme, setTheme] = useState(defaultTheme);
-  const [storedTheme, setStoredTheme] = useState("default");
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
@@ -37,13 +37,13 @@ export default function Stats() {
 
   const { primary, secondary, tertiary, text } = theme;
 
+  const listRef = useRef();
+
   useEffect(() => {
-    const loadData = async () => {
+    const loadTheme = async () => {
       try {
         const selectedTheme = await getSelectedTheme();
         setTheme(selectedTheme);
-        const savedTheme = await AsyncStorage.getItem("theme");
-        setStoredTheme(savedTheme ?? "default");
         setLoading(false);
       } catch (error) {
         console.warn("Failed to load data:", error);
@@ -51,7 +51,7 @@ export default function Stats() {
       }
     };
 
-    loadData();
+    loadTheme();
   }, []);
 
   useEffect(() => {
@@ -195,6 +195,8 @@ export default function Stats() {
           <Text style={{ color: text }}>Loading...</Text>
         ) : (
           <FlatList
+            style={style.list}
+            contentContainerStyle={style.listContent}
             data={
               searchInput === ""
                 ? (data?.items ?? [])
@@ -215,6 +217,7 @@ export default function Stats() {
             )}
             keyExtractor={(item) => item?.id}
             showsVerticalScrollIndicator={false}
+            ref={listRef}
             horizontal={false}
             ListEmptyComponent={() => {
               return (
@@ -231,6 +234,31 @@ export default function Stats() {
                       {type.toLowerCase()}
                     </Text>
                   )}
+                </View>
+              );
+            }}
+            ListFooterComponent={() => {
+              return (
+                <View style={{ justifyContent: "center" }}>
+                  <Pressable
+                    style={[
+                      style.scrollToTopButton,
+                      { backgroundColor: secondary },
+                    ]}
+                    onPress={() => {
+                      listRef?.current?.scrollToIndex({
+                        index: 0,
+                        animated: true,
+                      });
+                    }}
+                  >
+                    <Text
+                      style={[style.scrollToTopButtonText, { color: text }]}
+                    >
+                      Scroll to top
+                    </Text>
+                    <Octicons name="move-to-top" size={24} color={text} />
+                  </Pressable>
                 </View>
               );
             }}
@@ -281,5 +309,24 @@ const style = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     width: "100%",
+  },
+  list: {
+    width: "100%",
+  },
+  listContent: {
+    gap: 12.5,
+    paddingHorizontal: 10,
+  },
+  scrollToTopButton: {
+    padding: 7.5,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+    borderRadius: 30,
+    marginBottom: 10,
+  },
+  scrollToTopButtonText: {
+    fontWeight: "bold",
   },
 });

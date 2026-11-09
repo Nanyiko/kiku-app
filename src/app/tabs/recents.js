@@ -1,10 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
-import { Dimensions, FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Track from "../../../components/Track";
 import fetchData from "../../../context/fetchData";
+import fetchFriendData from "../../../context/fetchFriendData";
 import getSelectedTheme from "../../../context/theme";
+import Octicons from "@expo/vector-icons/Octicons";
+import { getFriends, getMe, getAccessToken } from "../../services/api";
+import SegmentedControl from "../../../components/SegmentedControl";
 
 const defaultTheme = {
   primary: "#C39BD3",
@@ -22,19 +33,93 @@ export default function Recents() {
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState([]);
   const [tokensLoaded, setTokensLoaded] = useState(false);
-  const [storedTheme, setStoredTheme] = useState("default");
+  const [refreshing, setRefreshing] = useState(false);
+  const [me, setMe] = useState(null);
+  const [friendsList, setFriendsList] = useState(null);
+  const [screen, setScreen] = useState("personal");
+  const [sharedFeed, setSharedFeed] = useState([]);
 
   const listRef = useRef(null);
 
   const { primary, secondary, tertiary, text } = theme;
 
+  const loadFriends = async () => {
+    try {
+      const result = await getFriends();
+      setFriendsList(result);
+      console.log("Friends API result:", result?.friends);
+    } catch (error) {
+      console.error("Friends API error:", error.message);
+    }
+  };
+
+  const loadMe = async () => {
+    try {
+      const result = await getMe();
+      setMe(result?.me[0]);
+      console.log("Current user:", result?.me[0]);
+    } catch (error) {
+      console.error("Users API error:", error.message);
+    }
+  };
+
+  const loadSharedFeed = async () => {
+    setSharedFeed([]);
+    fetchData(
+      token,
+      refreshToken,
+      setToken,
+      setRefreshToken,
+      "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+      async (data) => {
+        setSharedFeed((prev) => {
+          const recentItems = data?.items ?? [];
+          const username = me?.display_name;
+          const profilePic = me?.profile_pic;
+
+          const enrichedItems = recentItems.map((item) => ({
+            ...item,
+            username,
+            profile_pic: profilePic,
+          }));
+
+          return [...prev, ...enrichedItems];
+        });
+        console.log("Shared feed fetched");
+        setLoading(false);
+      },
+    );
+    for (let user of friendsList?.friends) {
+      const token = await getAccessToken(user?.id);
+
+      fetchFriendData(
+        token?.access_token,
+        token?.refresh_token,
+        "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+        async (data) => {
+          setSharedFeed((prev) => {
+            const recentItems = data?.items ?? [];
+            const username = user?.display_name;
+            const profilePic = user?.profile_pic;
+
+            const enrichedItems = recentItems.map((item) => ({
+              ...item,
+              username,
+              profile_pic: profilePic,
+            }));
+
+            return [...prev, ...enrichedItems];
+          });
+        },
+      );
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
+    const loadTheme = async () => {
       try {
         const selectedTheme = await getSelectedTheme();
         setTheme(selectedTheme);
-        const savedTheme = await AsyncStorage.getItem("theme");
-        setStoredTheme(savedTheme ?? "default");
         setLoading(false);
       } catch (error) {
         console.warn("Failed to load recents data:", error);
@@ -42,7 +127,7 @@ export default function Recents() {
       }
     };
 
-    loadData();
+    loadTheme();
   }, []);
 
   useEffect(() => {
@@ -64,7 +149,6 @@ export default function Recents() {
   }, []);
 
   async function getData() {
-    setLoading(true);
     fetchData(
       token,
       refreshToken,
@@ -72,9 +156,33 @@ export default function Recents() {
       setRefreshToken,
       "https://api.spotify.com/v1/me/player/recently-played?limit=50",
       async (data) => {
-        setRecents((prev) => {
+        setRecents(() => {
           const recentItems = data?.items ?? [];
-          return [...prev, ...recentItems];
+          return [...recentItems];
+        });
+        console.log("Recent data fetched");
+        setLoading(false);
+        try {
+          const jsonValue = JSON.stringify(data);
+          await AsyncStorage.setItem("recents", jsonValue);
+        } catch (e) {
+          console.error("Error saving recent data", e);
+        }
+      },
+    );
+  }
+
+  async function refreshData() {
+    fetchData(
+      token,
+      refreshToken,
+      setToken,
+      setRefreshToken,
+      "https://api.spotify.com/v1/me/player/recently-played?limit=50",
+      async (data) => {
+        setRecents(() => {
+          const recentItems = data?.items ?? [];
+          return [...recentItems];
         });
         console.log("Recent data fetched");
         setLoading(false);
@@ -89,8 +197,28 @@ export default function Recents() {
   }
 
   useEffect(() => {
+    if (!tokensLoaded) return;
+    setLoading(true);
     getData();
-  }, [token, tokensLoaded, refreshToken]);
+    loadFriends();
+    loadMe();
+  }, [token, tokensLoaded]);
+
+  useEffect(() => {
+    if (!friendsList) return;
+    loadSharedFeed();
+  }, [token, tokensLoaded, friendsList]);
+
+  useEffect(() => {
+    setSharedFeed((prev) => {
+      return prev.sort((a, b) => {
+        const timestampA = new Date(a?.played_at).getTime();
+        const timestampB = new Date(b?.played_at).getTime();
+
+        return timestampB - timestampA;
+      });
+    });
+  }, [sharedFeed]);
 
   return (
     <LinearGradient
@@ -100,12 +228,39 @@ export default function Recents() {
       end={{ x: 0, y: 0.5 }}
     >
       {loading ? (
-        <Text style={[{ color: text }]}>Loading...</Text>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={[{ color: text }]}>Loading...</Text>
+        </View>
       ) : (
         <View style={{ alignItems: "center" }}>
+          <View
+            style={{
+              position: "absolute",
+              top: "5%",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 3000,
+            }}
+          >
+            <SegmentedControl
+              items={[
+                { label: "Personal", value: "personal" },
+                { label: "Shared Feed", value: "shared" },
+              ]}
+              size={"medium"}
+              theme={theme}
+              handleClick={(screen) => {
+                setScreen(screen);
+              }}
+            />
+          </View>
           <FlatList
-            data={recents ?? []}
-            renderItem={({ item }) => <Track song={item} theme={theme} />}
+            data={screen === "personal" ? recents : sharedFeed}
+            renderItem={({ item }) => (
+              <Track song={item} theme={theme} screen={screen} />
+            )}
             keyExtractor={(item) => item?.played_at}
             horizontal={false}
             pagingEnabled
@@ -115,7 +270,48 @@ export default function Recents() {
             decelerationRate="fast"
             disableIntervalMomentum
             ref={listRef}
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              if (screen === "personal") {
+                refreshData();
+              } else if (screen === "shared") {
+                loadSharedFeed();
+              }
+              listRef?.current?.scrollToIndex({
+                index: 0,
+                animated: true,
+              });
+              setRefreshing(false);
+            }}
+            ListEmptyComponent={() => {
+              return (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ color: text }}>No recent activity</Text>
+                </View>
+              );
+            }}
           />
+          <Pressable
+            style={[style.scrollToTopButton, { backgroundColor: secondary }]}
+            onPress={() => {
+              listRef?.current?.scrollToIndex({
+                index: 0,
+                animated: true,
+              });
+            }}
+          >
+            <Text style={[style.scrollToTopButtonText, { color: text }]}>
+              Scroll to top
+            </Text>
+            <Octicons name="move-to-top" size={24} color={text} />
+          </Pressable>
         </View>
       )}
     </LinearGradient>
@@ -150,5 +346,18 @@ const style = StyleSheet.create({
     zIndex: 100,
     flexDirection: "row",
     gap: 5,
+  },
+  scrollToTopButton: {
+    position: "absolute",
+    bottom: "1%",
+    padding: 7.5,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 5,
+    borderRadius: 30,
+  },
+  scrollToTopButtonText: {
+    fontWeight: "bold",
   },
 });

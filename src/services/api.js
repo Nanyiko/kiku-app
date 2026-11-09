@@ -29,12 +29,24 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
+export function getUsers() {
+  return apiRequest("/api/users");
+}
+
+export function getMe() {
+  return apiRequest("/api/users/me");
+}
+
 export function getFriends() {
   return apiRequest("/api/friends");
 }
 
-export function getFriendRequests() {
-  return apiRequest("/api/friends/requests");
+export function getIncomingFriendRequests() {
+  return apiRequest("/api/friends/requests/incoming");
+}
+
+export function getSentFriendRequests() {
+  return apiRequest("/api/friends/requests/sent");
 }
 
 export function sendFriendRequest(receiverId) {
@@ -53,4 +65,42 @@ export function respondToFriendRequest(requestId, status) {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
+}
+[];
+
+export function getAccessToken(userId) {
+  return apiRequest(`/api/users/get-tokens/${userId}`);
+}
+
+export async function registerSpotifyTokens(tokenResponse) {
+  const { accessToken, refreshToken, expiresIn, scope } = tokenResponse;
+
+  if (!accessToken || !refreshToken || !expiresIn) {
+    throw new Error(
+      "Spotify token response is missing accessToken, refreshToken, or expiresIn",
+    );
+  }
+
+  const response = await fetch(`${API_URL}/api/auth/spotify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      refreshToken,
+      expiresIn,
+      scopes: scope || "",
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error || `Spotify token registration failed (${response.status})`,
+    );
+  }
+
+  return data.user;
 }
