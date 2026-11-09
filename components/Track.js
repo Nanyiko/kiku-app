@@ -34,7 +34,7 @@ export default function Track({ song, theme, screen }) {
                 position: "absolute",
                 top: 0,
                 right: 0,
-                zIndex: 3000,
+                zIndex: 2000,
                 justifyContent: "center",
                 alignItems: "center",
               }}

@@ -285,18 +285,6 @@ export default function AddFriends() {
             <FontAwesome name="check" size={24} color="#21CC00" />
             <Text style={[style.buttonText, { color: "#21CC00" }]}>Accept</Text>
           </Pressable>
-          {/* <Pressable
-            style={[
-              style.respondButton,
-              style.button,
-              { backgroundColor: "#FFE6E6", borderColor: "#D10007" },
-            ]}
-            onPress={() => {
-              console.log("Reject");
-            }}
-          >
-            <AntDesign name="close" size={24} color="#D10007" />
-          </Pressable> */}
         </View>
       );
     } else if (friend_status == "friend") {
