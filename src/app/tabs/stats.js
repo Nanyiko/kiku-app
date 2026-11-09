@@ -324,6 +324,7 @@ const style = StyleSheet.create({
     flexDirection: "row",
     gap: 5,
     borderRadius: 30,
+    marginBottom: 10,
   },
   scrollToTopButtonText: {
     fontWeight: "bold",

@@ -431,7 +431,6 @@ export default function AddFriends() {
                         </View>
                       </View>
 
-                      {/* Action button */}
                       {isRequestScreen ? (
                         <AddButton
                           friend_status="request_received"
