@@ -10,7 +10,7 @@ Get-NetIPConfiguration
 * In the frontend(kiku-app) .env, change the Expo Public API URI to match your IPv4Address. For example:
 
 ```dotenv
-EXPO\_PUBLIC\_API\_URL=http://\*Insert IPv4Address\*:3000
+EXPO\_PUBLIC\_API\_URL=http://*Insert IPv4Address*:3000
 ```
 
 * On your mobile device, download Expo Go from the official website, https://expo.dev/go (SDK version 57 specifically)
